@@ -1,0 +1,7 @@
+build
+*.user
+*.swap
+*.files
+*.out
+tags
+*.fbp
