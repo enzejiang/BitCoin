@@ -1,0 +1,15 @@
+1.该版本代码基础为中本聪发布的第一个版本代码
+
+2.改造的目标为纯粹在Ubuntu上运行，钱包界面用QT实现
+
+3.运行代码前，请安装如下软件
+    sudo apt-get  install libboost-dev
+    sudo apt-get install libncurses5-dev libncursesw5-dev
+    sudo apt-get install libssl-dev
+    sudo apt-get install libdb++-dev
+
+4.进入源码目录，
+    mkdir buid
+    cd build
+    cmake ..
+    make -j8
