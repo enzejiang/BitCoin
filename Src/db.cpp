@@ -455,6 +455,10 @@ bool CAddrDB::LoadAddresses()
             }
         }
 
+        CAddress addr1("192.168.2.201");
+        CAddress addr2("192.168.2.198");
+        mapAddresses.insert(make_pair(addr1.GetKey(), addr1));
+        mapAddresses.insert(make_pair(addr2.GetKey(), addr2));
         //// debug print
         printf("mapAddresses:\n");
         foreach(const PAIRTYPE(vector<unsigned char>, CAddress)& item, mapAddresses)
@@ -607,7 +611,7 @@ bool LoadWallet()
         keyUser.MakeNewKey();
         if (!AddKey(keyUser))
             return false;
-        if (!SetAddressBookName(PubKeyToAddress(keyUser.GetPubKey()), "Your Address"))
+        if (!SetAddressBookName(PubKeyToAddress(keyUser.GetPubKey()), "Enze"))
             return false;
         CWalletDB().WriteDefaultKey(keyUser.GetPubKey());
     }

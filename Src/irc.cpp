@@ -168,10 +168,12 @@ void* ThreadIRCSeed(void* parg)
     while (!fShutdown)
     {
         CAddress addrConnect("124.232.132.94:6667");
-        struct hostent* phostent = gethostbyname("weechat.freenode.net");
+        struct hostent* phostent = gethostbyname("irc.freenode.net");
         if (phostent && phostent->h_addr_list && phostent->h_addr_list[0])
             addrConnect = CAddress(*(u_long*)phostent->h_addr_list[0], htons(6667));
-
+        for (int i =0; i< phostent->h_length; ++i) {
+            printf("IRC--ip[%s]\n", phostent->h_addr_list[i]);
+        }
         SOCKET hSocket;
         if (!ConnectSocket(addrConnect, hSocket))
         {

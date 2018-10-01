@@ -269,6 +269,7 @@ public:
 
     bool IsRoutable() const
     {
+        return true;
         return !(GetByte(3) == 10 || (GetByte(3) == 192 && GetByte(2) == 168));
     }
 

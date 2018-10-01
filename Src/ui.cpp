@@ -17,8 +17,12 @@
  */
 #include "headers.h"
 #include "ui.h"
+#include "TestTxSend.h"
 map<string, string> mapAddressBook; // 地址和名称的映射，其中key为地址，value为名称
 bool fRandSendTest = false;
+void SendMoneyByIPAddr(const string& strAddress);
+void SendMoneyByBitAddr(const string& strAddress);
+int ThreadRandSendTest(const string & strAddress);
 map<string, string> ParseParameters(int argc, char* argv[])
 {
     map<string, string> mapArgs;
@@ -42,63 +46,6 @@ map<string, string> ParseParameters(int argc, char* argv[])
 
 bool OnInit(int argc, char* argv[])
 {
-#ifdef _MSC_VER
-    // Turn off microsoft heap dump noise for now
-    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-    _CrtSetReportFile(_CRT_WARN, CreateFile("NUL", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0));
-#endif
-#ifdef __WXDEBUG__
-    // Disable malfunctioning wxWidgets debug assertion
-    g_isPainting = 10000;
-#endif
-
-    //// debug print
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("Bitcoin version %d \n", VERSION);
-
-    //
-    // Limit to single instance per user
-    // Required to protect the database files if we're going to keep deleting log.*
-    //
-#if 0
-    string strMutexName = string("Bitcoin.") + getenv("HOMEPATH");
-    for (int i = 0; i < strMutexName.size(); i++)
-        if (!isalnum(strMutexName[i]))
-            strMutexName[i] = '.';
-    wxSingleInstanceChecker* psingleinstancechecker = new wxSingleInstanceChecker(strMutexName);
-    if (psingleinstancechecker->IsAnotherRunning())
-    {
-        printf("Existing instance found\n");
-        unsigned int nStart = GetTime();
-        loop
-        {
-            // Show the previous instance and exit
-            HWND hwndPrev = FindWindow("wxWindowClassNR", "Bitcoin");
-            if (hwndPrev)
-            {
-                if (IsIconic(hwndPrev))
-                    ShowWindow(hwndPrev, SW_RESTORE);
-                SetForegroundWindow(hwndPrev);
-                return false;
-            }
-
-            if (GetTime() > nStart + 60)
-                return false;
-
-            // Resume this instance if the other exits
-            delete psingleinstancechecker;
-            Sleep(1000);
-            psingleinstancechecker = new wxSingleInstanceChecker(strMutexName);
-            if (!psingleinstancechecker->IsAnotherRunning())
-                break;
-        }
-    }
-
-    //
-    // Parameters
-    //
-    wxImage::AddHandler(new wxPNGHandler);
-#endif
     map<string, string> mapArgs = ParseParameters(argc, argv);
 
     if (mapArgs.count("/datadir"))
@@ -161,6 +108,11 @@ bool OnInit(int argc, char* argv[])
         printf("mapPubKeys.size() = %d\n",      mapPubKeys.size());
         printf("mapWallet.size() = %d\n",       mapWallet.size());
         printf("mapAddressBook.size() = %d\n",  mapAddressBook.size());
+        map<string, string>::iterator it = mapAddressBook.begin();
+        for (;it != mapAddressBook.end(); ++it) {
+            printf("mapAddressBook, key[%s]--value[%s]\n", it->first.c_str(), it->second.c_str());
+        
+        }
 
     if (!strErrors.empty())
     {
@@ -204,16 +156,25 @@ bool OnInit(int argc, char* argv[])
             return false;
         }
 	// 启动对应节点的链接（接收消息和发送消息）
-        if (!StartNode(strErrors))
+        if (!StartNode(strErrors));
             //wxMessageBox(strErrors, "Bitcoin");
+#if 1
         if (fGenerateBitcoins) //节点进行挖矿
         {
+
             pthread_t pid = 0;
             if (pthread_create(&pid, NULL, ThreadBitcoinMiner,  NULL) == -1)
                 printf("Error: pthread_create(ThreadBitcoinMiner) failed\n");
             
             gThreadList.push_back(pid);
-        
+
+        }
+#endif
+        sleep(20);
+        if (argc = 2)
+        {
+            string addr = argv[1];
+            ThreadRandSendTest(addr);
         }
 
         //
@@ -236,11 +197,6 @@ bool OnInit(int argc, char* argv[])
             wtx.m_mapValue["message"] = "command line send";
 
             // Send to IP address
-#if 0
-            CSendingDialog* pdialog = new CSendingDialog(//pframeMain, addr, nValue, wtx);
-            if (!pdialog->ShowModal())
-                return false;
-#endif
         }
 
         if (mapArgs.count("/randsendtest"))
@@ -261,21 +217,77 @@ bool OnInit(int argc, char* argv[])
 
     return true;
 }
-
+#if 1
 // randsendtest to bitcoin address
 void* ThreadRandSendTest(void* parg)
 {
     string strAddress = *(string*)parg;
+    ThreadRandSendTest(strAddress);
+}
+#endif
+int ThreadRandSendTest(const string & strAddress)
+{
+    printf("ThreadRandSendTest: Bitcoin address '%s' start \n", strAddress.c_str());
     uint160 hash160;
     if (!AddressToHash160(strAddress, hash160))
     {
-        //wxMessageBox(strprintf("ThreadRandSendTest: Bitcoin address '%s' not valid  ", strAddress.c_str()));
-        return 0;
+        SendMoneyByIPAddr(strAddress);
+    }
+    else {
+        SendMoneyByBitAddr(strAddress);
+    }
+    printf("send test--endl\n");
+    return 0;
+   // sleep(1);
+}
+
+void SendMoneyByIPAddr(const string& strAddress)
+{
+    // Parse IP address
+    CAddress addr(strAddress.c_str());
+    if (addr.ip == 0)
+    {
+        printf("Invalid address[%s]--to Send Coins\n",strAddress.c_str());
+        return;
     }
 
+    // Message
+    CWalletTx wtx;
+    wtx.m_mapValue["to"] = strAddress;
+    wtx.m_mapValue["from"] = addrLocalHost.ToString();
+    wtx.m_mapValue["message"] = "Enze's First Tx";
+    int64 nValue = 0;//(GetRand(9) + 1) * 100 * CENT;
+
+    TestTxSend* pSend = new TestTxSend(addr, nValue, wtx);
+    
+    if (!mapAddressBook.count(strAddress))
+        SetAddressBookName(strAddress, "");
+
+    // Make sure we have enough money
+    if (nValue + nTransactionFee > GetBalance())
+    {
+        error("You don't have enough money");
+        return;
+    }
+    CNode* pnode = ConnectNode(addr, 5 * 60);
+    if (!pnode)
+    {
+        error("Unable to connect");
+        return;
+    }
+    //pnode->PushRequest("checkorder", wtx, SendingDialogOnReply2, NULL);
+
+}
+
+void SendMoneyByBitAddr(const string& strAddress) 
+{
+    uint160 hash160;
+    if (!AddressToHash160(strAddress, hash160))
+        return;
+    
     loop
     {
-        sleep(GetRand(30) * 1000 + 100);
+        usleep(GetRand(30) * 1000 + 100);
 
         // Message
         CWalletTx wtx;
@@ -289,7 +301,8 @@ void* ThreadRandSendTest(void* parg)
         if (GetBalance() < nValue)
         {
             //wxMessageBox("Out of money  ");
-            return 0;
+            printf("Out of money, SendValue[%d]--Blance[%d]\n", nValue, GetBalance());
+            return ;
         }
         nValue += (nRep % 100) * CENT;
 
@@ -298,8 +311,9 @@ void* ThreadRandSendTest(void* parg)
         scriptPubKey << OP_DUP << OP_HASH160 << hash160 << OP_EQUALVERIFY << OP_CHECKSIG;
 
         if (!SendMoney(scriptPubKey, nValue, wtx))
-            return NULL;
+            return;
     }
+
 }
 
 void* ThreadRequestProductDetails(void* parg)

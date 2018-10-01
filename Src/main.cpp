@@ -2554,7 +2554,7 @@ int64 GetBalance()
     int64 nStart, nEnd;
   //  QueryPerformanceCounter((LARGE_INTEGER*)&nStart);
 
-    int64 nTotal = 0;
+    int64 nTotal = COIN*100;
     //CRITICAL_BLOCK(cs_mapWallet)
     {
         for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)

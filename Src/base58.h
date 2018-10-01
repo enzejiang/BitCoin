@@ -14,6 +14,7 @@
 
 #ifndef CXX_BT_BASE58_H
 #define CXX_BT_BASE58_H
+#include <stdio.h>
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 
@@ -67,6 +68,7 @@ inline bool DecodeBase58(const char* psz, vector<unsigned char>& vchRet)
     CBigNum bn58 = 58;
     CBigNum bn = 0;
     CBigNum bnChar;
+
     while (isspace(*psz))
         psz++;
 
@@ -165,6 +167,7 @@ inline string Hash160ToAddress(uint160 hash160)
 
 inline bool AddressToHash160(const char* psz, uint160& hash160Ret)
 {
+    printf("start AddressToHash160--[%s]\n", psz);
     vector<unsigned char> vch;
     if (!DecodeBase58Check(psz, vch))
         return false;
@@ -173,6 +176,7 @@ inline bool AddressToHash160(const char* psz, uint160& hash160Ret)
     unsigned char nVersion = vch[0];
     if (vch.size() != sizeof(hash160Ret) + 1)
         return false;
+    printf("AddressToHash160---nVersion[%d]--ADDRESSVERSION[%d]\n", nVersion, ADDRESSVERSION);
     memcpy(&hash160Ret, &vch[1], sizeof(hash160Ret));
     return (nVersion <= ADDRESSVERSION);
 }

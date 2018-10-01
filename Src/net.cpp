@@ -108,36 +108,23 @@ bool GetMyExternalIP2(const CAddress& addrConnect, const char* pszGet, const cha
 
     send(hSocket, pszGet, strlen(pszGet), 0);
 
-    string strLine;
-    while (RecvLine(hSocket, strLine))
+    char Buf[512] = {0};
+    int len = recv(hSocket, Buf, 512, 0);
+    if (len > 0)
     {
-        if (strLine.empty())
-        {
-            loop
-            {
-                if (!RecvLine(hSocket, strLine))
-                {
-                    close(hSocket);
-                    return false;
-                }
-                if (strLine.find(pszKeyword) != -1)
-                {
-                    strLine = strLine.substr(strLine.find(pszKeyword) + strlen(pszKeyword));
-                    break;
-                }
-            }
-            close(hSocket);
-            if (strLine.find("<"))
-                strLine = strLine.substr(0, strLine.find("<"));
-            strLine = strLine.substr(strspn(strLine.c_str(), " \t\n\r"));
-            trim(strLine);
-            CAddress addr(strLine.c_str());
-            printf("GetMyExternalIP() received [%s] %s\n", strLine.c_str(), addr.ToString().c_str());
-            if (addr.ip == 0 || !addr.IsRoutable())
-                return false;
-            ipRet = addr.ip;
-            return true;
-        }
+        //printf("GetMyExternalIP() received %s\n", Buf);
+        char BufIP[32] = {0};
+        sscanf(strstr(Buf,"utf-8")+9,"%*[^\n]\n%[^\n]",BufIP);
+       // printf("GetMyExternalIP() received IP %s\n", BufIP);
+        CAddress addr(BufIP);
+        if (addr.ip == 0 || !addr.IsRoutable())
+            return false;
+        ipRet = addr.ip;
+        return true;
+    }
+    else {
+        close(hSocket);
+        return false;
     }
     close(hSocket);
     return error("GetMyExternalIP() : connection closed\n");
@@ -155,18 +142,18 @@ bool GetMyExternalIP(unsigned int& ipRet)
     {
         if (nHost == 1)
         {
-            addrConnect = CAddress("104.31.13.156:80"); // www.ipaddressworld.com
+            addrConnect = CAddress("118.184.176.13:80"); // www.3322.org
 
             if (nLookup == 1)
             {
-                struct hostent* phostent = gethostbyname("www.ipaddressworld.com");
+                struct hostent* phostent = gethostbyname("www.3322.org");
                 if (phostent && phostent->h_addr_list && phostent->h_addr_list[0])
                     addrConnect = CAddress(*(u_long*)phostent->h_addr_list[0], htons(80));
             }
 
-            pszGet = "GET /ip.php HTTP/1.1\r\n"
-                     "Host: www.ipaddressworld.com\r\n"
-                     "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
+            pszGet = "GET /dyndns/getip HTTP/1.1\r\n"
+                     "Host:www.3322.org\r\n"
+                     "ACCEPT:*/*\r\n"
                      "Connection: close\r\n"
                      "\r\n";
 
@@ -465,7 +452,7 @@ void CNode::Disconnect()
 // socket 处理，parag对应的是本地节点开启的监听socket
 void* ThreadSocketHandler(void* parg)
 {
-  IMPLEMENT_RANDOMIZE_STACK(ThreadSocketHandler(parg));
+//  IMPLEMENT_RANDOMIZE_STACK(ThreadSocketHandler(parg));
 
     loop
     {
@@ -658,7 +645,7 @@ void ThreadSocketHandler2(void* parg)
                 CNode* pnode = new CNode(hSocket, addr, true); // 有新的socket链接，则新建对应的节点，并将节点在加入本地节点列表中
                 pnode->AddRef();
          //       //CRITICAL_BLOCK(cs_vNodes)
-                    vNodes.push_back(pnode);
+                vNodes.push_back(pnode);
             }
         }
 
@@ -757,7 +744,7 @@ void ThreadSocketHandler2(void* parg)
 
 void* ThreadOpenConnections(void* parg)
 {
-    IMPLEMENT_RANDOMIZE_STACK(ThreadOpenConnections(parg));
+//    IMPLEMENT_RANDOMIZE_STACK(ThreadOpenConnections(parg));
 
     loop
     {
@@ -786,7 +773,7 @@ void ThreadOpenConnections2(void* parg)
     {
         // Wait
         vfThreadRunning[1] = false;
-        sleep(500);
+    //    sleep(500);
         while (vNodes.size() >= nMaxConnections || vNodes.size() >= mapAddresses.size())
         {
             CheckForShutdown(1);
@@ -859,7 +846,7 @@ void ThreadOpenConnections2(void* parg)
                     nDelay *= 4;
                 if (!mapIRCAddresses.empty())
                     nDelay *= 100;  
-					     }
+             }
 					
 				/*
 				map::lower_bound(key):返回map中第一个大于或等于key的迭代器指针
@@ -892,17 +879,17 @@ void ThreadOpenConnections2(void* parg)
             foreach(const CAddress& addrConnect, (*mi).second)
             {
 				// ip不能是本地ip，且不能是非ipV4地址，对应的ip地址不在本地的节点列表中
-            CheckForShutdown(1);
+                CheckForShutdown(1);
                 if (addrConnect.ip == addrLocalHost.ip || !addrConnect.IsIPv4() || FindNode(addrConnect.ip))
                     continue;
 				// 链接对应地址信息的节点
-            vfThreadRunning[1] = false;
-            CNode* pnode = ConnectNode(addrConnect);
-            vfThreadRunning[1] = true;
-            CheckForShutdown(1);
-            if (!pnode)
-                continue;
-            pnode->fNetworkNode = true;
+                vfThreadRunning[1] = false;
+                CNode* pnode = ConnectNode(addrConnect);
+                vfThreadRunning[1] = true;
+                CheckForShutdown(1);
+                if (!pnode)
+                    continue;
+                pnode->fNetworkNode = true;
 
 				// 如果本地主机地址能够进行路由，则需要广播我们的地址
                 if (addrLocalHost.IsRoutable())
@@ -967,7 +954,7 @@ void ThreadMessageHandler2(void* parg)
         // Poll the connected nodes for messages
         vector<CNode*> vNodesCopy;
         //CRITICAL_BLOCK(cs_vNodes)
-            vNodesCopy = vNodes;
+         vNodesCopy = vNodes;
 		// 对每一个节点进行消息处理：发送消息和接收消息
         foreach(CNode* pnode, vNodesCopy)
         {
@@ -975,18 +962,18 @@ void ThreadMessageHandler2(void* parg)
 
             // Receive messages
             //TRY_CRITICAL_BLOCK(pnode->cs_vRecv)
-                ProcessMessages(pnode);
+             ProcessMessages(pnode);
 
             // Send messages
             //TRY_CRITICAL_BLOCK(pnode->cs_vSend)
-                SendMessages(pnode);
+            SendMessages(pnode);
 
             pnode->Release();
         }
 
         // Wait and allow messages to bunch up
         vfThreadRunning[2] = false;
-        sleep(100);
+        sleep(10);
         vfThreadRunning[2] = true;
         CheckForShutdown(2);
     }
@@ -1027,17 +1014,6 @@ void* ThreadBitcoinMiner(void* parg)
 bool StartNode(string& strError)
 {
     strError = "";
-#if 0
-    // Sockets startup
-    WSADATA wsadata;
-    int ret = WSAStartup(MAKEWORD(2,2), &wsadata);
-    if (ret != NO_ERROR)
-    {
-        strError = strprintf("Error: TCP/IP socket library failed to start (WSAStartup returned error %d)", ret);
-        printf("%s\n", strError.c_str());
-        return false;
-    }
-#endif
     // Get local host ip
     char pszHostName[255]= {0};
     if (gethostname(pszHostName, 255) == SOCKET_ERROR)
@@ -1056,6 +1032,7 @@ bool StartNode(string& strError)
     addrLocalHost = CAddress(*(long*)(phostent->h_addr_list[0]),
                              DEFAULT_PORT,
                              nLocalServices);
+
     printf("addrLocalHost = %s\n", addrLocalHost.ToString().c_str());
 
     // Create socket for listening for incoming connections
@@ -1068,19 +1045,14 @@ bool StartNode(string& strError)
     }
 
     // Set to nonblocking, incoming connections will also inherit this
-#if 0
-    u_long nOne = 1;
-    if (ioctlsocket(hListenSocket, FIONBIO, &nOne) == SOCKET_ERROR)
-    {
-        strError = strprintf("Error: Couldn't set properties on socket for incoming connections (ioctlsocket returned error %d)", errno);
-        printf("%s\n", strError.c_str());
-        return false;
-    }
-#endif 
     int flag = 0;
     flag = fcntl(hListenSocket, F_GETFL, NULL);
     fcntl(hListenSocket, F_SETFL, flag|O_NONBLOCK);
 
+    // Reuse Addr
+    int opt = 1;
+    socklen_t opt_len = sizeof(opt);
+    setsockopt(hListenSocket, SOL_SOCKET, SO_REUSEADDR, &opt, opt_len);
     // The sockaddr_in structure specifies the address family,
     // IP address, and port for the socket that is being bound
     int nRetryLimit = 15;
@@ -1108,13 +1080,12 @@ bool StartNode(string& strError)
     // Get our external IP address for incoming connections
     if (addrIncoming.ip)
         addrLocalHost.ip = addrIncoming.ip;
-#if 0
     if (GetMyExternalIP(addrLocalHost.ip))
     {
         addrIncoming = addrLocalHost;
         CWalletDB().WriteSetting("addrIncoming", addrIncoming);
     }
-#endif
+
     /*IRC是Internet Relay Chat 的英文缩写，中文一般称为互联网中继聊天。
 	它是由芬兰人Jarkko Oikarinen于1988年首创的一种网络聊天协议。
 	经过十年的发展，目前世界上有超过60个国家提供了IRC的服务。IRC的工作原理非常简单，
@@ -1127,12 +1098,12 @@ bool StartNode(string& strError)
 	所以IRC的中文名为“因特网中继聊天”。
 	*/
     pthread_t pid = 0;
-
+#if 0
     // Get addresses from IRC and advertise ours
     if (pthread_create(&pid, NULL, ThreadIRCSeed, NULL) == -1)
         printf("Error: pthread_create(ThreadIRCSeed) failed\n");
-
     gThreadList.push_back(pid);
+#endif
 	// 启动线程
     //
     // Start threads

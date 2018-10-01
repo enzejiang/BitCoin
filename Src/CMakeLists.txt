@@ -14,6 +14,7 @@ SET(SRC_LIST
     "${CUR_SRC_DIR}/sha.cpp"
     "${CUR_SRC_DIR}/ui.cpp"
     "${CUR_SRC_DIR}/util.cpp"
+    "${CUR_SRC_DIR}/TestTxSend.cpp"
     "${CUR_SRC_DIR}/test.cpp"
 )
 
