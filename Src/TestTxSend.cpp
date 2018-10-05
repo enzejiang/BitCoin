@@ -16,6 +16,8 @@
  * =====================================================================================
  */
 #include "TestTxSend.h"
+#include "main.h"
+#include "Network/net.h"
 //////////////////////////////////////////////////////////////////////////////
 //
 // TestTxSend
@@ -87,7 +89,7 @@ bool TestTxSend::Error(const string& str)
 {
     fCanCancel = false;
     fWorkDone = true;
-    Status(string("Error: ") + str);
+    Status(string("error: ") + str);
     return false;
 }
 
@@ -103,7 +105,7 @@ void TestTxSend::StartTransfer()
     // Make sure we have enough money
     if (nPrice + nTransactionFee > GetBalance())
     {
-        Error("You don't have enough money");
+        error("You don't have enough money");
         return;
     }
 
@@ -113,10 +115,10 @@ void TestTxSend::StartTransfer()
     CNode* pnode = ConnectNode(addr, 5 * 60);
     if (!pnode)
     {
-        Error("Unable to connect");
+        error("Unable to connect");
         return;
     }
-
+     printf("start TestTxSend::StartTransfer--push checkorder\n");
     // Send order to seller, with response going to OnReply2 via event handler
     if (!Status("Requesting public key..."))
         return;
@@ -142,7 +144,7 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
         {
             string strMessage;
             vRecv >> strMessage;
-            Error("Transfer was not accepted");
+            error("Transfer was not accepted");
             //// todo: enlarge the window and enable a hidden white box to put seller's message
             return;
         }
@@ -151,7 +153,7 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
     catch (...)
     {
         //// what do we want to do about this?
-        Error("Invalid response received");
+        error("Invalid response received");
         return;
     }
 
@@ -159,7 +161,7 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
     CNode* pnode = ConnectNode(addr, 5 * 60);
     if (!pnode)
     {
-        Error("Lost connection");
+        error("Lost connection");
         return;
     }
 
@@ -172,19 +174,20 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
             return;
         if (nPrice + nTransactionFee > GetBalance())
         {
-            Error("You don't have enough money");
+            error("You don't have enough money");
             return;
         }
         int64 nFeeRequired;
         if (!CreateTransaction(scriptPubKey, nPrice, wtx, nFeeRequired))
         {
             if (nPrice + nFeeRequired > GetBalance())
-                Error(strprintf("This is an oversized transaction that requires a transaction fee of %s", FormatMoney(nFeeRequired).c_str()));
+                printf("This is an oversized transaction that requires a transaction fee of %s", FormatMoney(nFeeRequired).c_str());
             else
-                Error("Transaction creation failed");
+                error("TestTxSend::OnReply2--Transaction creation failed");
             return;
         }
 
+#if 0
         // Last chance to cancel
         sleep(50);
         if (!Status())
@@ -199,11 +202,11 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
         }
         if (!Status("Sending payment..."))
             return;
-
+#endif
         // Commit
         if (!CommitTransactionSpent(wtx))
         {
-            Error("Error finalizing payment");
+            error("error finalizing payment");
             return;
         }
 
@@ -231,7 +234,7 @@ void TestTxSend::OnReply3(CDataStream& vRecv)
         vRecv >> nRet;
         if (nRet > 0)
         {
-            Error("The payment was sent, but the recipient was unable to verify it.\n"
+            error("The payment was sent, but the recipient was unable to verify it.\n"
                   "The transaction is recorded and will credit to the recipient if it is valid,\n"
                   "but without comment information.");
             return;
@@ -240,7 +243,7 @@ void TestTxSend::OnReply3(CDataStream& vRecv)
     catch (...)
     {
         //// what do we want to do about this?
-        Error("Payment was sent, but an invalid response was received");
+        error("Payment was sent, but an invalid response was received");
         return;
     }
 

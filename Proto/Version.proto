@@ -1,0 +1,11 @@
+syntax = "proto3";
+import "Address.proto";
+package Enze;
+
+message Version
+{
+    int64 uTime = 1;
+    int32 nVersion = 2;
+    uint64 nServices = 3;
+    Address addrMe = 4;
+}

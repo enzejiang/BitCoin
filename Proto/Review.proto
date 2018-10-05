@@ -1,0 +1,13 @@
+syntax = "proto3";
+package Enze;
+
+message Review
+{
+    int32 nVersion = 1;
+    string hashTo = 2;
+    map<string, string> mapValue =3;
+    repeated uint32 vchPubKeyFrom = 4;
+    repeated uint32 vchSig = 5;
+    uint32 nTime = 6;
+    int32 nAtoms = 7;
+}

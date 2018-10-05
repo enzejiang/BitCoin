@@ -1,0 +1,12 @@
+syntax = "proto3";
+package Enze;
+message GetBlocks
+{
+    message BlockLocator
+    {
+        repeated string vHave = 1;
+    }
+    BlockLocator locator = 1;
+    string hashStop =2;
+}
+

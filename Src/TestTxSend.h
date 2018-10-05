@@ -20,7 +20,9 @@
 #define CXX_BT_TEST_TX_SEND_H
 
 #include "headers.h"
-
+#include "Network/CAddress.h"
+#include "TX/CWalletTx.h"
+class CDataStream;
 class TestTxSend
 {
 	

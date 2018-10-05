@@ -1,0 +1,13 @@
+syntax = "proto3";
+import "TxIn.proto"; 
+import "TxOut.proto";
+package Enze;
+
+message Transaction
+{
+    int32 nCurVersion = 1; // 交易的版本号，用于升级
+    int32 nLockTime = 2; // 交易对应的锁定时间
+    repeated TxIn vTxIn = 3; // 交易对应的输入
+    repeated TxOut vTxOut = 4; //交易对应的锁定时间
+}
+

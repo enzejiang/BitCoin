@@ -1,7 +1,16 @@
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.5)
+
+find_package(Protobuf REQUIRED)
+
+if(PROTOBUF_FOUND)
+    message(STATUS "protobuf library found")
+else()
+    message(FATAL_ERROR "protobuf library is needed but cant be found")
+endif()
 
 SET(PROJECT_ROOT "${CMAKE_SOURCE_DIR}/Src")
 SET(SRC_ROOT "${CMAKE_SOURCE_DIR}/Src")
+SET(PROTO_SRC_PATH "${CMAKE_SOURCE_DIR}/Proto")
 SET(LIB_PATH "${CMAKE_SOURCE_DIR}/Lib")
 SET(INCLUDE_PATH "${PROJECT_ROOT}/pubinclude")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs  -ftest-coverage -fPIC -O0")
@@ -9,9 +18,12 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs  -ftest-coverage -fPIC -O
 MESSAGE("-------------------------------------------")
 MESSAGE("-----project root is ${PROJECT_ROOT}-------")
 MESSAGE("-------------------------------------------")
+MESSAGE("-------------${Protobuf_LIBRARIES}---------------")
 ADD_DEFINITIONS(-D__WX__ -D__WXGTK__)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} wx-config --cxxflags -std=c11")
 #add_compile_options()
 INCLUDE("${PROJECT_ROOT}/CMakeLists.txt")
-
+INCLUDE("${PROTO_SRC_PATH}/CMakeLists.txt")
+# cmake --help-module FindProtobuf
 ADD_DEFINITIONS(-g)
+ADD_DEFINITIONS(-std=c++11 )

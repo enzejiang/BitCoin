@@ -1,0 +1,8 @@
+syntax = "proto3";
+package Enze;
+
+message TxOut
+{
+    int64 nValue = 1; // 交易输出对应的金额
+    string cScriptPubKey = 2; // 交易对应的公钥
+}
