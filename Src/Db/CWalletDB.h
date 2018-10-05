@@ -21,9 +21,10 @@
 
 #include "Db/CDB.h"
 #include "CommonBase/uint256.h"
+#include "CommonBase/BlockEngine.h"
 #include "key.h"
+
 class CWalletTx;
-extern map<string, string> mapAddressBook;
 
 class CWalletDB : public CDB
 {
@@ -38,12 +39,14 @@ public:
 
     bool WriteName(const string& strAddress, const string& strName)
     {
+        map<string, string>& mapAddressBook = BlockEngine::getInstance()->mapAddressBook;
         mapAddressBook[strAddress] = strName;
         return Write(make_pair(string("name"), strAddress), strName);
     }
 
     bool EraseName(const string& strAddress)
     {
+        map<string, string>& mapAddressBook = BlockEngine::getInstance()->mapAddressBook;
         mapAddressBook.erase(strAddress);
         return Erase(make_pair(string("name"), strAddress));
     }

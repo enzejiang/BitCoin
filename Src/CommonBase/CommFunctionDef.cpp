@@ -16,7 +16,6 @@
  * =====================================================================================
  */
 #include "script.h"
-#include "main.h"
 #include "TX/CTransaction.h"
 uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
@@ -95,7 +94,8 @@ bool ExtractPubKey(const CScript& scriptPubKey, bool fMineOnly, vector<unsigned 
     if (!Solver(scriptPubKey, vSolution))
         return false;
 
-    //CRITICAL_BLOCK(cs_mapKeys)
+    map<uint160, vector<unsigned char> >& mapPubKeys = BlockEngine::getInstance()->mapPubKeys;
+    map<vector<unsigned char>, CPrivKey>& mapKeys = BlockEngine::getInstance()->mapKeys;
     {
         foreach(PAIRTYPE(opcodetype, valtype)& item, vSolution)
         {

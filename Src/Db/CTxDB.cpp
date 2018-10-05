@@ -24,6 +24,7 @@
 #include "Block/CDiskBlockIndex.h"
 #include "Block/CDiskTxPos.h"
 #include "CommonBase/uint256.h"
+#include "CommonBase/BlockEngine.h"
 //
 // CTxDB
 //
@@ -163,7 +164,12 @@ bool CTxDB::LoadBlockIndex()
     Dbc* pcursor = GetCursor();
     if (!pcursor)
         return false;
-
+    CBlockIndex*& pindexGenesisBlock = BlockEngine::getInstance()->pindexGenesisBlock;
+    const uint256& hashGenesisBlock  = BlockEngine::getInstance()->hashGenesisBlock;
+    uint256& hashBestChain = BlockEngine::getInstance()->hashBestChain;
+    CBlockIndex*& pindexBest = BlockEngine::getInstance()->pindexBest;
+    map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
+    int& nBestHeight = BlockEngine::getInstance()->nBestHeight;
     unsigned int fFlags = DB_SET_RANGE;
     loop
     {

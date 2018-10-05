@@ -44,9 +44,10 @@ bool CTransaction::AcceptTransaction(CTxDB& txdb, bool fCheckInputs, bool* pfMis
 	// 判断当前交易是否我们已经接收到过了
     // Do we already have it?
     uint256 hash = GetHash();
-//    CRITICAL_BLOCK(cs_mapTransactions)
-        if (mapTransactions.count(hash)) // 判断内存对象map中是否已经存在
-            return false;
+    map<uint256, CTransaction>& mapTransactions = BlockEngine::getInstance()->mapTransactions;
+    map<COutPoint, CInPoint>& mapNextTx = BlockEngine::getInstance()->mapNextTx;
+    if (mapTransactions.count(hash)) // 判断内存对象map中是否已经存在
+        return false;
     if (fCheckInputs)
         if (txdb.ContainsTx(hash)) // 判断交易db中是否已经存在
             return false;
@@ -92,7 +93,6 @@ bool CTransaction::AcceptTransaction(CTxDB& txdb, bool fCheckInputs, bool* pfMis
 
 	// 将当前交易存储在内存，如果老的交易存在，则从内存中将对应的交易移除
     // Store transaction in memory
- //   CRITICAL_BLOCK(cs_mapTransactions)
     {
         if (ptxOld)
         {
@@ -108,7 +108,7 @@ bool CTransaction::AcceptTransaction(CTxDB& txdb, bool fCheckInputs, bool* pfMis
     // If updated, erase old tx from wallet
     if (ptxOld)
 		// 将交易从钱包映射对象mapWallet中移除，同时将交易从CWalletDB中移除
-        EraseFromWallet(ptxOld->GetHash());
+        BlockEngine::getInstance()->EraseFromWallet(ptxOld->GetHash());
 
     printf("AcceptTransaction(): accepted %s\n", hash.ToString().substr(0,6).c_str());
     return true;
@@ -119,7 +119,8 @@ bool CTransaction::AddToMemoryPool()
 {
     // Add to memory pool without checking anything.  Don't call this directly,
     // call AcceptTransaction to properly check the transaction first.
- //   CRITICAL_BLOCK(cs_mapTransactions)
+    map<uint256, CTransaction>& mapTransactions = BlockEngine::getInstance()->mapTransactions;
+    map<COutPoint, CInPoint>& mapNextTx = BlockEngine::getInstance()->mapNextTx;
     {
         uint256 hash = GetHash();
         mapTransactions[hash] = *this; // 将当前交易放入到内存对象mapTransactions中
@@ -128,7 +129,7 @@ bool CTransaction::AddToMemoryPool()
             mapNextTx[m_vTxIn[i].m_cPrevOut] = CInPoint(&mapTransactions[hash], i);
 
 		// 记录交易被更新的次数
-        nTransactionsUpdated++;
+        BlockEngine::getInstance()->nTransactionsUpdated++;
     }
     return true;
 }
@@ -137,12 +138,13 @@ bool CTransaction::AddToMemoryPool()
 bool CTransaction::RemoveFromMemoryPool()
 {
     // Remove transaction from memory pool
-//    CRITICAL_BLOCK(cs_mapTransactions)
+    map<uint256, CTransaction>& mapTransactions = BlockEngine::getInstance()->mapTransactions;
+    map<COutPoint, CInPoint>& mapNextTx = BlockEngine::getInstance()->mapNextTx;
     {
         foreach(const CTxIn& txin, m_vTxIn)
             mapNextTx.erase(txin.m_cPrevOut);
         mapTransactions.erase(GetHash());
-        nTransactionsUpdated++;
+        BlockEngine::getInstance()->nTransactionsUpdated++;
     }
     return true;
 }
@@ -190,6 +192,9 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, map<uint256, CTxIndex>& mapTestPoo
     // Take over previous transactions' spent pointers
     if (!IsCoinBase())
     {
+        map<uint256, CTransaction>& mapTransactions = BlockEngine::getInstance()->mapTransactions;
+        const int& nBestHeight = BlockEngine::getInstance()->nBestHeight;
+        CBlockIndex*& pindexBest = BlockEngine::getInstance()->pindexBest;
         int64 nValueIn = 0;
         for (int i = 0; i < m_vTxIn.size(); i++)
         {
@@ -295,7 +300,7 @@ bool CTransaction::ClientConnectInputs()
 
 	// 占用前一个交易对应的花费标记
     // Take over previous transactions' spent pointers
-//    CRITICAL_BLOCK(cs_mapTransactions)
+    map<uint256, CTransaction>& mapTransactions = BlockEngine::getInstance()->mapTransactions;
     {
         int64 nValueIn = 0;
         for (int i = 0; i < m_vTxIn.size(); i++)

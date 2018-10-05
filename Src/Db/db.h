@@ -17,7 +17,6 @@ class CReview;
 class CAddress;
 class CWalletTx;
 class CBlockIndex;
-extern map<string, string> mapAddressBook;
 extern bool fClient;
 extern bool fDbEnvInit;
 extern map<string, int> mapFileUseCount;

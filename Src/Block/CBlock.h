@@ -19,7 +19,6 @@
 #define CXX_BT_CBLOCK_H
 #include "headers.h"
 #include "serialize.h"
-#include "main.h"
 #include "TX/CTransaction.h"
 #include "CommonBase/uint256.h"
 #include "Network/CMessageHeader.h"
@@ -154,7 +153,7 @@ public:
     bool WriteToDisk(bool fWriteTransactions, unsigned int& nFileRet, unsigned int& nBlockPosRet)
     {
         // Open history file to append
-        CAutoFile fileout = AppendBlockFile(nFileRet);
+        CAutoFile fileout = BlockEngine::getInstance()->AppendBlockFile(nFileRet);
         if (!fileout)
             return error("CBlock::WriteToDisk() : AppendBlockFile failed");
         if (!fWriteTransactions)
@@ -181,7 +180,7 @@ public:
         SetNull();
 
         // Open history file to read
-        CAutoFile filein = OpenBlockFile(nFile, nBlockPos, "rb");
+        CAutoFile filein = BlockEngine::getInstance()->OpenBlockFile(nFile, nBlockPos, "rb");
         if (!filein)
             return error("CBlock::ReadFromDisk() : OpenBlockFile failed");
         if (!fReadTransactions)

@@ -4,7 +4,6 @@
 #ifndef CXX_BT_NET_H
 #define CXX_BT_NET_H
 #include <arpa/inet.h>
-#include "main.h"
 #include "Network/CNode.h"
 #include "Network/irc.h"
 class CAddrDB;

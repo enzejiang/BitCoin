@@ -15,6 +15,7 @@
  *
  * =====================================================================================
  */
+#include "BlockEngine.h"
 #include "Block/CBlock.h"
 #include "Block/CBlockIndex.h"
 #include "Block/CDiskBlockIndex.h"
@@ -56,7 +57,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	// 监视在block中哪些
     // Watch for transactions paying to me
     foreach(CTransaction& tx, m_vTrans)
-        AddToWalletIfMine(tx, this);
+        BlockEngine::getInstance()->AddToWalletIfMine(tx, this);
     return true;
 }
 
@@ -73,6 +74,7 @@ bool CBlock::ReadFromDisk(const CBlockIndex* pblockindex, bool fReadTransactions
 // 获取这个区块对应的价值（奖励+交易手续费）
 int64 CBlock::GetBlockValue(int64 nFees) const
 {
+    int nBestHeight = BlockEngine::getInstance()->nBestHeight;
 	// 补贴;津贴，初始奖励是50个比特币
     int64 nSubsidy = 50 * COIN;
 
@@ -111,6 +113,7 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 // 将当前区块增加到对应的区块索引链中mapBlockIndex
 bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
 {
+    map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
     // Check for duplicate
     uint256 hash = GetHash();
     if (mapBlockIndex.count(hash))
@@ -137,6 +140,11 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
 	// 更新最长链对应的指针
     // New best
 	// 新链的高度已经超过主链了（即是新链到创世区块的长度 大于 本节点认为的最长链到创世区块的长度
+    int& nBestHeight = BlockEngine::getInstance()->nBestHeight;
+    const uint256& hashGenesisBlock = BlockEngine::getInstance()->hashGenesisBlock;
+    CBlockIndex*& pindexGenesisBlock = BlockEngine::getInstance()->pindexGenesisBlock;
+    uint256& hashBestChain = BlockEngine::getInstance()->hashBestChain;
+    CBlockIndex*& pindexBest = BlockEngine::getInstance()->pindexBest;
     if (pindexNew->m_nCurHeight > nBestHeight)
     {
 		// 判断是否是创世区块
@@ -171,7 +179,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
 			// 当前区块既不是创世区块，且当前区块对应的前一个区块也不在最长主链上的情况
 			// 再加上新区块所在链的长度大于本节点认为主链的长度，所有将进行分叉处理
             // New best branch
-            if (!Reorganize(txdb, pindexNew))
+            if (!BlockEngine::getInstance()->Reorganize(txdb, pindexNew))
             {
                 txdb.TxnAbort();
                 return error("AddToBlockIndex() : Reorganize failed");
@@ -179,10 +187,10 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
         }
 
         // New best link
-        hashBestChain = hash;
-        pindexBest = pindexNew;
-        nBestHeight = pindexBest->m_nCurHeight;
-        nTransactionsUpdated++;
+        BlockEngine::getInstance()->hashBestChain = hash;
+        BlockEngine::getInstance()->pindexBest = pindexNew;
+        BlockEngine::getInstance()->nBestHeight = pindexBest->m_nCurHeight;
+        BlockEngine::getInstance()->nTransactionsUpdated++;
         printf("AddToBlockIndex: new best=%s  height=%d\n", hashBestChain.ToString().substr(0,14).c_str(), nBestHeight);
     }
 
@@ -192,7 +200,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
 	// 转播那些到目前为止还没有进入block中的钱包交易
     // Relay wallet transactions that haven't gotten in yet
     if (pindexNew == pindexBest)
-        RelayWalletTransactions();// 在节点之间进行转播
+        BlockEngine::getInstance()->RelayWalletTransactions();// 在节点之间进行转播
 
   //  MainFrameRepaint();
     return true;
@@ -247,6 +255,7 @@ bool CBlock::CheckBlock() const
 // 判断当前区块能够被接收
 bool CBlock::AcceptBlock()
 {
+    map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
     // Check for duplicate
     uint256 hash = GetHash();
     if (mapBlockIndex.count(hash)) 
@@ -265,11 +274,11 @@ bool CBlock::AcceptBlock()
 
 	//工作量证明校验：每一个节点自己计算对应的工作量难度
     // Check proof of work
-    if (m_uBits != GetNextWorkRequired(pindexPrev))
+    if (m_uBits != BlockEngine::getInstance()->GetNextWorkRequired(pindexPrev))
         return error("AcceptBlock() : incorrect proof of work");
 
     // Write block to history file
-    if (!CheckDiskSpace(::GetSerializeSize(*this, SER_DISK)))
+    if (!BlockEngine::getInstance()->CheckDiskSpace(::GetSerializeSize(*this, SER_DISK)))
         return error("AcceptBlock() : out of disk space");
     unsigned int nFile;
     unsigned int nBlockPos;
@@ -280,7 +289,7 @@ bool CBlock::AcceptBlock()
     if (!AddToBlockIndex(nFile, nBlockPos))
         return error("AcceptBlock() : AddToBlockIndex failed");
 
-    if (hashBestChain == hash)
+    if (BlockEngine::getInstance()->hashBestChain == hash)
         RelayInventory(CInv(MSG_BLOCK, hash));
 
     // // Add atoms to user reviews for coins created

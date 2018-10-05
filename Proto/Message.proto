@@ -1,0 +1,25 @@
+syntax = "proto3";
+import "Address.proto";
+import "MessageHeader.proto";
+import "Block.proto";
+import "GetBlocks.proto";
+import "Inventory.proto";
+import "Order.proto";
+import "Review.proto";
+import "Transaction.proto";
+import "Version.proto";
+package Enze;
+
+message MessageData
+{
+    MessageHeader cMsgHead = 1;
+    Version cVersion = 2;
+    repeated Address vAddr = 3; 
+    repeated Inventory vInv = 4;
+    GetBlocks getBlocks = 5;
+    Transaction tx = 6;
+    Review cReview = 7;
+    Order  cOrder = 8;
+    Block cblock = 9;
+    string hashreply = 10;
+}

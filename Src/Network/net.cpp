@@ -12,6 +12,7 @@
 #include <boost/algorithm/string.hpp>
 #include "headers.h"
 #include "market.h"
+#include "BlockEngine.h"
 #include "Network/net.h"
 #include "Db/CAddrDB.h"
 #include "Db/CWalletDB.h"
@@ -139,6 +140,7 @@ bool GetMyExternalIP2(const CAddress& addrConnect, const char* pszGet, const cha
 
 bool GetMyExternalIP(unsigned int& ipRet)
 {
+    return false;
     CAddress addrConnect;
     char* pszGet;
     char* pszKeyword;
@@ -874,6 +876,7 @@ void ThreadOpenConnections2(void* parg)
             // Once we've chosen an IP, we'll try every given port before moving on
             foreach(const CAddress& addrConnect, (*mi).second)
             {
+               // printf("OpenConnection,LocalIP[%s], addrConnect_ip[%s]\n", addrLocalHost.ToStringIP().c_str(), addrConnect.ToStringIP().c_str());
 				// ip不能是本地ip，且不能是非ipV4地址，对应的ip地址不在本地的节点列表中
                 CheckForShutdown(1);
                 if (addrConnect.ip == addrLocalHost.ip || !addrConnect.IsIPv4() || FindNode(addrConnect.ip))
@@ -957,10 +960,10 @@ void ThreadMessageHandler2(void* parg)
             pnode->AddRef();
 
             // Receive messages
-             ProcessMessages(pnode);
+            BlockEngine::getInstance()->ProcessMessages(pnode);
 
             // Send messages
-            SendMessages(pnode);
+            BlockEngine::getInstance()->SendMessages(pnode);
 
             pnode->Release();
         }
@@ -982,7 +985,7 @@ void* ThreadBitcoinMiner(void* parg)
     CheckForShutdown(3);
     try
     {
-        bool fRet = BitcoinMiner();
+        bool fRet = BlockEngine::getInstance()->BitcoinMiner();
         printf("BitcoinMiner returned %s\n\n\n", fRet ? "true" : "false");
     }
     CATCH_PRINT_EXCEPTION("BitcoinMiner()")
@@ -1064,7 +1067,7 @@ bool StartNode(string& strError)
         printf("%s\n", strError.c_str());
         return false;
     }
-
+    CAddress& addrIncoming = BlockEngine::getInstance()->addrIncoming;
     // Get our external IP address for incoming connections
     if (addrIncoming.ip)
         addrLocalHost.ip = addrIncoming.ip;
@@ -1127,7 +1130,7 @@ bool StopNode()
 {
     printf("StopNode()\n");
     fShutdown = true;
-    nTransactionsUpdated++;
+    BlockEngine::getInstance()->nTransactionsUpdated++;
     int64 nStart = GetTime();
     while (vfThreadRunning[0] || vfThreadRunning[2] || vfThreadRunning[3])
     {

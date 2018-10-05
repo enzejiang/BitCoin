@@ -18,7 +18,7 @@
 
 #ifndef CXX_BT_CNODE_H
 #define CXX_BT_CNODE_H
-
+#include "BlockEngine.h"
 #include "Network/Net_DataDef.h"
 #include "Network/CAddress.h"
 #include "Network/CInv.h"
@@ -179,7 +179,7 @@ public:
 	// 修改消息头中对应的消息大小字段
     void EndMessage()
     {
-        extern int nDropMessagesTest;
+        int nDropMessagesTest = BlockEngine::getInstance()->nDropMessagesTest;
         if (nDropMessagesTest > 0 && GetRand(nDropMessagesTest) == 0)
         {
             printf("dropmessages DROPPING SEND MESSAGE\n");

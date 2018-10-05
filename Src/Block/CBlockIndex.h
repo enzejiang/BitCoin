@@ -89,6 +89,7 @@ public:
 	// 判断是否在主链，通过m_pNextBlkIndex是否为空和当前块索引指针是否就是最长链指针
     bool IsInMainChain() const
     {
+        const CBlockIndex* pindexBest = BlockEngine::getInstance()->pindexBest;
         return (m_pNextBlkIndex || this == pindexBest);
     }
 
@@ -96,7 +97,7 @@ public:
     bool EraseBlockFromDisk()
     {
         // Open history file
-        CAutoFile fileout = OpenBlockFile(m_nFile, m_nBlockPos, "rb+");
+        CAutoFile fileout = BlockEngine::getInstance()->OpenBlockFile(m_nFile, m_nBlockPos, "rb+");
         if (!fileout)
             return false;
 

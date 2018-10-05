@@ -17,7 +17,7 @@
  */
 #ifndef CXX_BT_CBLOCK_LOCATOR_H
 #define CXX_BT_CBLOCK_LOCATOR_H
-
+#include "BlockEngine.h"
 //
 // Describes a place in the block chain to another node such that if the
 // other node doesn't have the same branch, it can find a recent common trunk.
@@ -40,6 +40,7 @@ public:
 
     explicit CBlockLocator(uint256 hashBlock)
     {
+        map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
         map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
         if (mi != mapBlockIndex.end())
             Set((*mi).second);
@@ -67,11 +68,12 @@ public:
             if (vHave.size() > 10)
                 nStep *= 2;
         }
-        vHave.push_back(hashGenesisBlock); // 默认放置一个创世区块
+        vHave.push_back(BlockEngine::getInstance()->hashGenesisBlock); // 默认放置一个创世区块
     }
 	// 找到本地有的且在主链上的块的索引
     CBlockIndex* GetBlockIndex()
     {
+        map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
         // Find the first block the caller has in the main chain
         foreach(const uint256& hash, vHave)
         {
@@ -84,12 +86,14 @@ public:
                     return pindex;
             }
         }
-        return pindexGenesisBlock;
+        
+        return BlockEngine::getInstance()->pindexGenesisBlock;
     }
 
     uint256 GetBlockHash()
     {
         // Find the first block the caller has in the main chain
+        map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
         foreach(const uint256& hash, vHave)
         {
             map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
@@ -100,7 +104,7 @@ public:
                     return hash;
             }
         }
-        return hashGenesisBlock;
+        return BlockEngine::getInstance()->hashGenesisBlock;
     }
 
     int GetHeight()

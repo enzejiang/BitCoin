@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 #include "TestTxSend.h"
-#include "main.h"
+#include "BlockEngine.h"
 #include "Network/net.h"
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -103,7 +103,8 @@ void TestTxSend::StartTransfer()
 {
     printf("start TestTxSend::StartTransfer\n");
     // Make sure we have enough money
-    if (nPrice + nTransactionFee > GetBalance())
+    int64 nTransactionFee = BlockEngine::getInstance()->nTransactionFee; 
+    if (nPrice + nTransactionFee > BlockEngine::getInstance()->GetBalance())
     {
         error("You don't have enough money");
         return;
@@ -172,39 +173,25 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
         // Pay
         if (!Status("Creating transaction..."))
             return;
-        if (nPrice + nTransactionFee > GetBalance())
+        int64 nTransactionFee = BlockEngine::getInstance()->nTransactionFee; 
+        
+        if (nPrice + nTransactionFee > BlockEngine::getInstance()->GetBalance())
         {
             error("You don't have enough money");
             return;
         }
         int64 nFeeRequired;
-        if (!CreateTransaction(scriptPubKey, nPrice, wtx, nFeeRequired))
+        if (!BlockEngine::getInstance()->CreateTransaction(scriptPubKey, nPrice, wtx, nFeeRequired))
         {
-            if (nPrice + nFeeRequired > GetBalance())
+            if (nPrice + nFeeRequired > BlockEngine::getInstance()->GetBalance())
                 printf("This is an oversized transaction that requires a transaction fee of %s", FormatMoney(nFeeRequired).c_str());
             else
                 error("TestTxSend::OnReply2--Transaction creation failed");
             return;
         }
 
-#if 0
-        // Last chance to cancel
-        sleep(50);
-        if (!Status())
-            return;
-        fCanCancel = false;
-        if (fAbort)
-        {
-            fCanCancel = true;
-            if (!Status())
-                return;
-            fCanCancel = false;
-        }
-        if (!Status("Sending payment..."))
-            return;
-#endif
         // Commit
-        if (!CommitTransactionSpent(wtx))
+        if (!BlockEngine::getInstance()->CommitTransactionSpent(wtx))
         {
             error("error finalizing payment");
             return;

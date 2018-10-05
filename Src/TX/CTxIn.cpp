@@ -16,13 +16,14 @@
  * =====================================================================================
  */
 #include "util.h"
-#include "main.h"
+#include "BlockEngine.h"
 #include "TX/CTxIn.h"
 #include "TX/CWalletTx.h"
+
 // 判断当前交易是是否对应本节点的交易
 bool CTxIn::IsMine() const
 {
-//    CRITICAL_BLOCK(cs_mapWallet)
+    map<uint256, CWalletTx>& mapWallet = BlockEngine::getInstance()->mapWallet;
     {
         map<uint256, CWalletTx>::iterator mi = mapWallet.find(m_cPrevOut.m_u256Hash);
         if (mi != mapWallet.end())
@@ -39,7 +40,7 @@ bool CTxIn::IsMine() const
 // 获取当前节点对于此笔交易对应的输入金额，如果输入对应的不是当前节点则对应的借方金额为0
 int64 CTxIn::GetDebit() const
 {
-    //CRITICAL_BLOCK(cs_mapWallet)
+    map<uint256, CWalletTx>& mapWallet = BlockEngine::getInstance()->mapWallet;
     {
         map<uint256, CWalletTx>::iterator mi = mapWallet.find(m_cPrevOut.m_u256Hash);
         if (mi != mapWallet.end())

@@ -48,8 +48,8 @@
 
 using namespace std;
 typedef long long  int64;
-const long long _I64_MAX = 0xFFFFFFFF-1;
-const unsigned long long _UI64_MAX = 0xFFFFFFFF;
+const long long _I64_MAX = 0x7FFFFFFFFFFFFFFF;
+const unsigned long long _UI64_MAX = 0xFFFFFFFFFFFFFFFF;
 const CBigNum bnProofOfWorkLimit(~uint256(0) >> 12);
 // This is needed because the foreach macro can't get over the comma in pair<t1, t2>
 #define PAIRTYPE(t1, t2)    pair<t1, t2>

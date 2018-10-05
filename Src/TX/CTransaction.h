@@ -17,8 +17,8 @@
  */
 #ifndef CXX_BT_CTRANSACTION_H
 #define CXX_BT_CTRANSACTION_H
-#include "main.h"
 #include "script.h"
+#include "BlockEngine.h"
 #include "TX/CTxIn.h"
 #include "TX/CTxOut.h"
 #include "Block/CDiskTxPos.h"
@@ -74,6 +74,7 @@ public:
     bool IsFinal() const
     {
         // 如果锁定时间等于0或者锁定时间小于主链的长度，则说明是最终的交易
+        const int& nBestHeight = BlockEngine::getInstance()->nBestHeight;
         if (m_nLockTime == 0 || m_nLockTime < nBestHeight)
             return true;
         foreach(const CTxIn& txin, m_vTxIn)
@@ -213,7 +214,7 @@ public:
 	// 从硬盘中进行读取
     bool ReadFromDisk(const CDiskTxPos& pos, FILE** pfileRet=NULL)
     {
-        CAutoFile filein = OpenBlockFile(pos.m_nFile, 0, pfileRet ? "rb+" : "rb");
+        CAutoFile filein = BlockEngine::getInstance()->OpenBlockFile(pos.m_nFile, 0, pfileRet ? "rb+" : "rb");
         if (!filein)
             return error("CTransaction::ReadFromDisk() : OpenBlockFile failed");
 

@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-#include "main.h"
+#include "BlockEngine.h"
 #include "Db/CWalletDB.h"
 #include "TX/CWalletTx.h"
 #include "Network/CAddress.h"
@@ -28,8 +28,14 @@ bool CWalletDB::LoadWallet(vector<unsigned char>& vchDefaultKeyRet)
     vchDefaultKeyRet.clear();
 
     //// todo: shouldn't we catch exceptions and try to recover and continue?
-    //CRITICAL_BLOCK(cs_mapKeys)
-    //CRITICAL_BLOCK(cs_mapWallet)
+    
+    map<uint256, CWalletTx>& mapWallet = BlockEngine::getInstance()->mapWallet; // 钱包交易对应的map，其中key对应的钱包交易的hash值，mapWallet仅仅存放和本节点相关的交易
+    map<vector<unsigned char>, CPrivKey>& mapKeys = BlockEngine::getInstance()->mapKeys; // 公钥和私钥对应的映射关系，其中key为公钥，value为私钥
+    map<uint160, vector<unsigned char> >& mapPubKeys = BlockEngine::getInstance()->mapPubKeys; // 公钥的hash值和公钥的关系，其中key为公钥的hash值，value为公钥
+    int& fGenerateBitcoins = BlockEngine::getInstance()->fGenerateBitcoins;
+    int64& nTransactionFee = BlockEngine::getInstance()->nTransactionFee;
+    CAddress& addrIncoming = BlockEngine::getInstance()->addrIncoming;
+    map<string, string>& mapAddressBook = BlockEngine::getInstance()->mapAddressBook;
     {
         // Get cursor
         Dbc* pcursor = GetCursor();
@@ -102,7 +108,7 @@ bool CWalletDB::LoadWallet(vector<unsigned char>& vchDefaultKeyRet)
     printf("fGenerateBitcoins = %d\n", fGenerateBitcoins);
     printf("nTransactionFee = %I64d\n", nTransactionFee);
     printf("addrIncoming = %s\n", addrIncoming.ToString().c_str());
-
+   mapWallet.count(18);
     return true;
 }
 

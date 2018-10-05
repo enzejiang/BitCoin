@@ -15,6 +15,7 @@
  *
  * =====================================================================================
  */
+#include "BlockEngine.h"
 #include "TX/CMerkleTx.h"
 #include "TX/CTxIndex.h"
 #include "TX/CWalletTx.h"
@@ -69,6 +70,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
         m_vMerkleBranch = pblock->GetMerkleBranch(m_nIndex);
     }
 
+    map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
     // Is the tx in a block that's in the main chain
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(m_hashBlock);
     if (mi == mapBlockIndex.end())
@@ -78,7 +80,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
         return 0;
 
 	// 返回当前交易在主链中的高度（即是当前block相对于主链末尾之间中间隔了多少个block）
-    return pindexBest->m_nCurHeight - pindex->m_nCurHeight + 1;
+    return BlockEngine::getInstance()->pindexBest->m_nCurHeight - pindex->m_nCurHeight + 1;
 }
 
 
@@ -91,6 +93,7 @@ int CMerkleTx::GetDepthInMainChain() const
 
 	// 获取当前交易所在的block，从内存对象mapBlockIndex中获取
     // Find the block it claims to be in
+    map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(m_hashBlock);
     if (mi == mapBlockIndex.end())
         return 0;
@@ -108,7 +111,7 @@ int CMerkleTx::GetDepthInMainChain() const
         m_bMerkleVerified = true;
     }
 
-    return pindexBest->m_nCurHeight - pindex->m_nCurHeight + 1;
+    return BlockEngine::getInstance()->pindexBest->m_nCurHeight - pindex->m_nCurHeight + 1;
 }
 
 
@@ -118,7 +121,9 @@ int CMerkleTx::GetBlocksToMaturity() const
 {
     if (!IsCoinBase())
         return 0;
-    return max(0, (COINBASE_MATURITY+20) - GetDepthInMainChain());
+    int iMax = max(0, (COINBASE_MATURITY+20) - GetDepthInMainChain());
+    printf("CMerkleTx::GetBlocksToMaturity--[%d]\n", iMax);
+    return iMax;
 }
 
 

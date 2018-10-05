@@ -17,12 +17,13 @@ INCLUDE_DIRECTORIES(
 
 
 SET(SRC_LIST
-    "${CUR_SRC_DIR}/CommonBase/main.cpp"
+    #"${CUR_SRC_DIR}/CommonBase/main.cpp"
     "${CUR_SRC_DIR}/CommonBase/market.cpp"
     "${CUR_SRC_DIR}/CommonBase/script.cpp"
     "${CUR_SRC_DIR}/CommonBase/sha.cpp"
     "${CUR_SRC_DIR}/CommonBase/CommFunctionDef.cpp"
     "${CUR_SRC_DIR}/CommonBase/util.cpp"
+    "${CUR_SRC_DIR}/CommonBase/BlockEngine.cpp"
     "${CUR_SRC_DIR}/Network/irc.cpp"
     "${CUR_SRC_DIR}/Network/net.cpp"
     "${CUR_SRC_DIR}/Block/CBlock.cpp"

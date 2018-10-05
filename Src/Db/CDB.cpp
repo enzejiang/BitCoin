@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 #include "util.h"
+#include "BlockEngine.h"
 #include "Db/CDB.h"
 #include "Db/db.h"
 #include "TX/CWalletTx.h"
@@ -40,7 +41,7 @@ CDB::CDB(const char* pszFile, const char* pszMode, bool fTxn) : m_pDb(NULL)
     {
         if (!fDbEnvInit)
         {
-            string strAppDir = GetAppDir();
+            string strAppDir = BlockEngine::getInstance()->GetAppDir();
             string strLogDir = strAppDir + "\/database";
             mkdir(strLogDir.c_str(), 0775);
             printf("dbenv.open strAppDir=%s\n", strAppDir.c_str());

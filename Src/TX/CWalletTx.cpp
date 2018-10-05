@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "BlockEngine.h"
 #include "TX/CWalletTx.h"
 #include "Block/CBlockIndex.h"
 #include "Network/CInv.h"
@@ -23,6 +24,7 @@
 // 获取交易时间
 int64 CWalletTx::GetTxTime() const
 {
+    map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
     if (!m_bTimeReceivedIsTxTime && m_hashBlock != 0)
     {
         // If we did not receive the transaction directly, we rely on the block's
@@ -55,7 +57,7 @@ void CWalletTx::AddSupportingTransactions(CTxDB& txdb)
             vWorkQueue.push_back(txin.m_cPrevOut.m_u256Hash);
 
         // This critsect is OK because txdb is already open
-//        CRITICAL_BLOCK(cs_mapWallet)
+        map<uint256, CWalletTx>& mapWallet = BlockEngine::getInstance()->mapWallet;
         {
             map<uint256, const CMerkleTx*> mapWalletPrev;
             set<uint256> setAlreadyDone;
@@ -132,20 +134,18 @@ void CWalletTx::RelayWalletTransaction(CTxDB& txdb)
 // 判断当前交易是否能够被接收
 bool CWalletTx::AcceptWalletTransaction(CTxDB& txdb, bool fCheckInputs)
 {
- //   CRITICAL_BLOCK(cs_mapTransactions)
+    map<uint256, CTransaction>& mapTransactions = BlockEngine::getInstance()->mapTransactions;
+    foreach(CMerkleTx& tx, m_vPrevTx)
     {
-        foreach(CMerkleTx& tx, m_vPrevTx)
+        if (!tx.IsCoinBase())
         {
-            if (!tx.IsCoinBase())
-            {
-                uint256 hash = tx.GetHash();
-                if (!mapTransactions.count(hash) && !txdb.ContainsTx(hash))
-                    tx.AcceptTransaction(txdb, fCheckInputs);
-            }
+            uint256 hash = tx.GetHash();
+            if (!mapTransactions.count(hash) && !txdb.ContainsTx(hash))
+                tx.AcceptTransaction(txdb, fCheckInputs);
         }
-        if (!IsCoinBase())
-            return AcceptTransaction(txdb, fCheckInputs);
     }
+    if (!IsCoinBase())
+        return AcceptTransaction(txdb, fCheckInputs);
     return true;
 }
 

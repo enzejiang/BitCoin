@@ -25,6 +25,7 @@ SET(SRC_LIST
     "${CUR_SRC_DIR}/Block.proto"
     "${CUR_SRC_DIR}/Order.proto"
     "${CUR_SRC_DIR}/Version.proto"
+    "${CUR_SRC_DIR}/Message.proto"
     
 )
 
@@ -59,6 +60,7 @@ SET(PROTO_SRCS
     "${PROTO_GEN_PATH}/Block.pb.cc"
     "${PROTO_GEN_PATH}/Order.pb.cc"
     "${PROTO_GEN_PATH}/Version.pb.cc"
+    "${PROTO_GEN_PATH}/Message.pb.cc"
     )
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${PROTO_SRCS} )

@@ -5,12 +5,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "headers.h"
-#include "main.h"
 #include "Db/db.h"
 #include "Db/CAddrDB.h"
 #include "TX/CWalletTx.h"
 #include "CommonBase/base58.h"
 #include "CommonBase/uint256.h"
+#include "CommonBase/BlockEngine.h"
 #include "Block/CBlockIndex.h"
 //
 // CDB
@@ -79,7 +79,7 @@ CBlockIndex* InsertBlockIndex(uint256 hash)
 {
     if (hash == 0)
         return NULL;
-
+    map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->mapBlockIndex;
     // Return existing
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
     if (mi != mapBlockIndex.end())
@@ -103,31 +103,5 @@ bool LoadAddresses()
     return CAddrDB("cr+").LoadAddresses();
 }
 
-bool LoadWallet()
-{
-    vector<unsigned char> vchDefaultKey;
-    if (!CWalletDB("cr").LoadWallet(vchDefaultKey))
-        return false;
-
-    if (mapKeys.count(vchDefaultKey))
-    {
-        // Set keyUser
-        keyUser.SetPubKey(vchDefaultKey);
-        keyUser.SetPrivKey(mapKeys[vchDefaultKey]);
-    }
-    else
-    {
-        // Create new keyUser and set as default key
-        RandAddSeed(true);
-        keyUser.MakeNewKey();
-        if (!AddKey(keyUser))
-            return false;
-        if (!SetAddressBookName(PubKeyToAddress(keyUser.GetPubKey()), "Enze"))
-            return false;
-        CWalletDB().WriteDefaultKey(keyUser.GetPubKey());
-    }
-
-    return true;
-}
 
 /* EOF */

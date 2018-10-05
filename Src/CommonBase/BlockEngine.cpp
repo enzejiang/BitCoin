@@ -1,8 +1,21 @@
-// Copyright (c) 2009 Satoshi Nakamoto
-// Distributed under the MIT/X11 software license, see the accompanying
-// file license.txt or http://www.opensource.org/licenses/mit-license.php.
-
-#include "main.h"
+/*
+ * =====================================================================================
+ *
+ *       Filename:  BlockEngine.cpp
+ *
+ *    Description:  
+ *
+ *        Version:  1.0
+ *        Created:  10/05/2018 11:44:35 AM
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  enze (), 767201935@qq.com
+ *   Organization:  
+ *
+ * =====================================================================================
+ */
+#include "BlockEngine.h"
 #include "headers.h"
 #include "sha.h"
 #include "serialize.h"
@@ -11,6 +24,7 @@
 #include "CommonBase/CommDataDef.h"
 #include "CommonBase/bignum.h"
 #include "CommonBase/uint256.h"
+#include "CommonBase/base58.h"
 #include "Network/net.h"
 #include "TX/CTransaction.h"
 #include "TX/CMerkleTx.h"
@@ -23,62 +37,146 @@
 #include "Db/CTxDB.h"
 #include "Db/CWalletDB.h"
 #include "Db/CAddrDB.h"
+#include "Db/db.h"
 
+BlockEngine* BlockEngine::m_pInstance = NULL;
+pthread_mutex_t BlockEngine::m_mutexLock;
 
+BlockEngine* BlockEngine::getInstance()
+{
+    if (NULL == m_pInstance)
+    {
+        pthread_mutex_lock(&m_mutexLock); 
+        
+        if (NULL == m_pInstance) 
+        {
+            m_pInstance = new BlockEngine();
+        }
+        
+        pthread_mutex_unlock(&m_mutexLock); 
+    
+    }
+    
+    return m_pInstance;
+}
 
-//
-// Global state
-//
+void BlockEngine::Destory()
+{
+    pthread_mutex_lock(&m_mutexLock); 
+    if (NULL != m_pInstance)
+    {
+        delete m_pInstance;
+        m_pInstance = NULL;
+    }
+    pthread_mutex_unlock(&m_mutexLock); 
 
-//CCriticalSection cs_main;
+}
 
-map<uint256, CTransaction> mapTransactions;// 如果交易对应的区块已经放入主链中，则将从内存上删除这些放入区块中的交易，也就是说这里面仅仅保存没有被打包到主链中交易
-//CCriticalSection cs_mapTransactions;
-unsigned int nTransactionsUpdated = 0; // 每次对mapTransactions中交易进行更新，都对该字段进行++操作
-map<COutPoint, CInPoint> mapNextTx;// 如果对应的区块已经放入到主链中，则对应的区块交易应该要从本节点保存的交易内存池中删除
+BlockEngine::BlockEngine()
+: hashGenesisBlock("0xdc8be64865ce298ca87ebee785b15fa29240e60db149c2ba85666e702f3eb734")
+{
+    nTransactionsUpdated = 0; // 每次对mapTransactions中交易进行更新，都对该字段进行++操作
 
-map<uint256, CBlockIndex*> mapBlockIndex; // 块索引信息：其中key对应的block的hash值
-const uint256 hashGenesisBlock("0xdc8be64865ce298ca87ebee785b15fa29240e60db149c2ba85666e702f3eb734");
-CBlockIndex* pindexGenesisBlock = NULL; // 基础块对应的索引，也即是创世区块对应的索引
-int nBestHeight = -1; // 最长链对应的区块个数，从创世区块到当前主链最后一个区块，中间隔了多少个区块
-uint256 hashBestChain = 0; // 最长链最后一个区块对应的hash
-CBlockIndex* pindexBest = NULL; // 记录当前最长链主链对应的区块索引指针
+    pindexGenesisBlock = NULL; // 基础块对应的索引，也即是创世区块对应的索引
+    nBestHeight = -1; // 最长链对应的区块个数，从创世区块到当前主链最后一个区块，中间隔了多少个区块
+    hashBestChain = 0; // 最长链最后一个区块对应的hash
+    pindexBest = NULL; // 记录当前最长链主链对应的区块索引指针
 
-map<uint256, CBlock*> mapOrphanBlocks; // 孤儿块map
-multimap<uint256, CBlock*> mapOrphanBlocksByPrev;
+    nDropMessagesTest = 0; // 消息采集的频率，即是多个少消息采集一次进行处理
 
-map<uint256, CDataStream*> mapOrphanTransactions;// 孤儿交易，其中key对应的交易hash值
-multimap<uint256, CDataStream*> mapOrphanTransactionsByPrev; // 其中key为value交易对应输入的交易的hash值，value为当前交易
+    // Settings
+    fGenerateBitcoins = 0; // 是否挖矿，产生比特币
+    nTransactionFee = 0; // 交易费用
+}
 
-map<uint256, CWalletTx> mapWallet; // 钱包交易对应的map，其中key对应的钱包交易的hash值，mapWallet仅仅存放和本节点相关的交易
-vector<pair<uint256, bool> > vWalletUpdated; // 通知UI，对应的hash发生了改变
+BlockEngine::~BlockEngine()
+{
 
-map<vector<unsigned char>, CPrivKey> mapKeys; // 公钥和私钥对应的映射关系，其中key为公钥，value为私钥
-map<uint160, vector<unsigned char> > mapPubKeys; // 公钥的hash值和公钥的关系，其中key为公钥的hash值，value为公钥
-//CCriticalSection cs_mapKeys;
-CKey keyUser; // 当前用户公私钥对信息
+}
 
-string strSetDataDir;
-int nDropMessagesTest = 0; // 消息采集的频率，即是多个少消息采集一次进行处理
+void BlockEngine::initiation()
+{
+    //
+    // Load data files
+    //
+    string strErrors;
+    int64 nStart, nEnd;
 
-// Settings
-int fGenerateBitcoins = 0; // 是否挖矿，产生比特币
-int64 nTransactionFee = 0; // 交易费用
-CAddress addrIncoming;
+    printf("Loading addresses...\n");
+    if (!LoadAddresses())
+        strErrors += "Error loading addr.dat      \n";
+    printf(" addresses   %20I64d\n", nEnd - nStart);
 
+    printf("Loading block index...\n");
+    if (!LoadBlockIndex())
+        strErrors += "Error loading blkindex.dat      \n";
+    printf(" block index %20I64d\n", nEnd - nStart);
 
+    printf("Loading wallet...\n");
+    if (!LoadWallet())
+        strErrors += "Error loading wallet.dat      \n";
+    printf(" wallet      %20I64d\n", nEnd - nStart);
 
+    printf("Done loading\n");
 
+    //// debug print
+    printf("mapBlockIndex.size() = %d\n",   mapBlockIndex.size());
+    printf("nBestHeight = %d\n",            nBestHeight);
+    printf("mapKeys.size() = %d\n",         mapKeys.size());
+    printf("mapPubKeys.size() = %d\n",      mapPubKeys.size());
+    printf("mapWallet.size() = %d\n",       mapWallet.size());
+    printf("mapAddressBook.size() = %d\n",  mapAddressBook.size());
+    map<string, string>::iterator it = mapAddressBook.begin();
+    for (;it != mapAddressBook.end(); ++it) {
+        printf("mapAddressBook, key[%s]--value[%s]\n", it->first.c_str(), it->second.c_str());
 
+    }
 
+    if (!strErrors.empty())
+    {
+        printf("Initiation Error\n");
+        exit(-1);
+    }
 
+}
 
+bool BlockEngine::LoadWallet()
+{
+    vector<unsigned char> vchDefaultKey;
+    if (!CWalletDB("cr").LoadWallet(vchDefaultKey))
+        return false;
+    
+    if (mapKeys.count(vchDefaultKey))
+    {
+        // Set keyUser
+        keyUser.SetPubKey(vchDefaultKey);
+        keyUser.SetPrivKey(mapKeys[vchDefaultKey]);
+    }
+    else
+    {
+        // Create new keyUser and set as default key
+        RandAddSeed(true);
+        keyUser.MakeNewKey();
+        if (AddKey(keyUser))
+            return false;
+        if (!SetAddressBookName(PubKeyToAddress(keyUser.GetPubKey()), "Enze"))
+            return false;
+        CWalletDB().WriteDefaultKey(keyUser.GetPubKey());
+    }
+
+    return true;
+}
+
+bool BlockEngine::LoadAddresses()
+{
+    return CAddrDB("cr+").LoadAddresses();
+}
 //////////////////////////////////////////////////////////////////////////////
 //
 // mapKeys
 //
 // 将对应key的信息存放到对应的全局变量中
-bool AddKey(const CKey& key)
+bool BlockEngine::AddKey(const CKey& key)
 {
  //   CRITICAL_BLOCK(cs_mapKeys)
     {
@@ -88,7 +186,7 @@ bool AddKey(const CKey& key)
     return CWalletDB().WriteKey(key.GetPubKey(), key.GetPrivKey());
 }
 // 产生新的公私钥对
-vector<unsigned char> GenerateNewKey()
+vector<unsigned char> BlockEngine::GenerateNewKey()
 {
     CKey key;
     key.MakeNewKey();
@@ -105,7 +203,7 @@ vector<unsigned char> GenerateNewKey()
 // mapWallet
 //
 // 将当前交易增加到钱包mapWallet中：无则插入，有则更新，mapWallet仅仅存放和本节点相关的交易
-bool AddToWallet(const CWalletTx& wtxIn)
+bool BlockEngine::AddToWallet(const CWalletTx& wtxIn)
 {
     uint256 hash = wtxIn.GetHash();
  //   CRITICAL_BLOCK(cs_mapWallet)
@@ -164,7 +262,7 @@ bool AddToWallet(const CWalletTx& wtxIn)
 }
 
 // 如果当前交易属于本节点，则将当前交易加入到钱包中
-bool AddToWalletIfMine(const CTransaction& tx, const CBlock* pblock)
+bool BlockEngine::AddToWalletIfMine(const CTransaction& tx, const CBlock* pblock)
 {
     if (tx.IsMine() || mapWallet.count(tx.GetHash()))
     {
@@ -178,7 +276,7 @@ bool AddToWalletIfMine(const CTransaction& tx, const CBlock* pblock)
 }
 
 // 将交易从钱包映射对象mapWallet中移除，同时将交易从CWalletDB中移除
-bool EraseFromWallet(uint256 hash)
+bool BlockEngine::EraseFromWallet(uint256 hash)
 {
  //   CRITICAL_BLOCK(cs_mapWallet)
     {
@@ -201,7 +299,7 @@ bool EraseFromWallet(uint256 hash)
 // mapOrphanTransactions
 //
 // 增加孤儿交易
-void AddOrphanTx(const CDataStream& vMsg)
+void BlockEngine::AddOrphanTx(const CDataStream& vMsg)
 {
     CTransaction tx;
     CDataStream(vMsg) >> tx;
@@ -214,7 +312,7 @@ void AddOrphanTx(const CDataStream& vMsg)
         mapOrphanTransactionsByPrev.insert(make_pair(txin.m_cPrevOut.m_u256Hash, pvMsg));
 }
 // 删除对应的孤儿交易
-void EraseOrphanTx(uint256 hash)
+void BlockEngine::EraseOrphanTx(uint256 hash)
 {
     if (!mapOrphanTransactions.count(hash))
         return;
@@ -238,7 +336,7 @@ void EraseOrphanTx(uint256 hash)
 
 
 
-void ReacceptWalletTransactions()
+void BlockEngine::ReacceptWalletTransactions()
 {
     // Reaccept any txes of ours that aren't already in a block
     CTxDB txdb("r");
@@ -255,7 +353,7 @@ void ReacceptWalletTransactions()
 
 
 // 在相连的节点之间转播那些到目前为止还没有进入block中的钱包交易
-void RelayWalletTransactions()
+void BlockEngine::RelayWalletTransactions()
 {
     static int64 nLastTime;
 	// 转播钱包交易时间的间隔是10分钟，小于10分钟则不进行转播
@@ -289,7 +387,7 @@ void RelayWalletTransactions()
 
 
 // 获取孤儿块对应的根
-uint256 GetOrphanRoot(const CBlock* pblock)
+uint256 BlockEngine::GetOrphanRoot(const CBlock* pblock)
 {
     // Work back to the first block in the orphan chain
     while (mapOrphanBlocks.count(pblock->m_hashPrevBlock))
@@ -299,7 +397,7 @@ uint256 GetOrphanRoot(const CBlock* pblock)
 
 
 // 根据前一个block对应的工作量获取下一个block获取需要的工作量
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast)
+unsigned int BlockEngine::GetNextWorkRequired(const CBlockIndex* pindexLast)
 {
     const unsigned int nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
     const unsigned int nTargetSpacing = 10 * 60; // 10分钟产生一个block
@@ -358,7 +456,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast)
 
 
 // 重新组织区块的索引：因为此时已经出现区块链分叉
-bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
+bool BlockEngine::Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 {
     printf("*** REORGANIZE ***\n");
 
@@ -470,7 +568,7 @@ bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 }
 
 // 处理区块，不管是接收到的还是自己挖矿得到的
-bool ProcessBlock(CNode* pfrom, CBlock* pblock)
+bool BlockEngine::ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
     // Check for duplicate
     uint256 hash = pblock->GetHash();
@@ -578,7 +676,7 @@ bool ScanMessageStart(Stream& s)
     }
 }
 
-string GetAppDir()
+string BlockEngine::GetAppDir()
 {
     string strDir;
     if (!strSetDataDir.empty())
@@ -615,7 +713,7 @@ string GetAppDir()
     return strDir;
 }
 
-bool CheckDiskSpace(int64 nAdditionalBytes)
+bool BlockEngine::CheckDiskSpace(int64 nAdditionalBytes)
 {
 #if 0
     uint64 nFreeBytesAvailable = 0;     // bytes available to caller
@@ -645,7 +743,7 @@ bool CheckDiskSpace(int64 nAdditionalBytes)
 
 // 打开块文件
 // 知道块文件对应nFile值就可以知道其对应的文件名：blk${nFile}.dat
-FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode)
+FILE* BlockEngine::OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode)
 {
     if (nFile == -1)
         return NULL;
@@ -669,7 +767,7 @@ FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszM
 static unsigned int nCurrentBlockFile = 1;
 
 // 返回当前block应该在的文件指针
-FILE* AppendBlockFile(unsigned int& nFileRet)
+FILE* BlockEngine::AppendBlockFile(unsigned int& nFileRet)
 {
     nFileRet = 0;
     loop
@@ -690,7 +788,7 @@ FILE* AppendBlockFile(unsigned int& nFileRet)
     }
 }
 
-bool LoadBlockIndex(bool fAllowNew)
+bool BlockEngine::LoadBlockIndex(bool fAllowNew)
 {
     //
     // Load block index
@@ -766,7 +864,7 @@ bool LoadBlockIndex(bool fAllowNew)
 
 
 
-void PrintBlockTree()
+void BlockEngine::PrintBlockTree()
 {
     // precompute tree structure
     map<CBlockIndex*, vector<CBlockIndex*> > mapNext;
@@ -863,7 +961,7 @@ void PrintBlockTree()
 //
 
 // 判断对应的请求消息是否已经存在
-bool AlreadyHave(CTxDB& txdb, const CInv& inv)
+bool BlockEngine::AlreadyHave(CTxDB& txdb, const CInv& inv)
 {
     switch (inv.type)
     {
@@ -882,7 +980,7 @@ bool AlreadyHave(CTxDB& txdb, const CInv& inv)
 
 
 // 处理单个节点对应的消息：单个节点接收到的消息进行处理
-bool ProcessMessages(CNode* pfrom)
+bool BlockEngine::ProcessMessages(CNode* pfrom)
 {
     CDataStream& vRecv = pfrom->vRecv;
     if (vRecv.empty())
@@ -964,7 +1062,7 @@ bool ProcessMessages(CNode* pfrom)
 
 
 // 对节点pFrom处理命令strCommand对应的消息内容为vRecv
-bool ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
+bool BlockEngine::ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {
     static map<unsigned int, vector<unsigned char> > mapReuseKey;
     printf("received: %-12s (%d bytes)  ", strCommand.c_str(), vRecv.size());
@@ -1343,7 +1441,7 @@ bool ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
 
 // 处理节点对应的消息发送
-bool SendMessages(CNode* pto)
+bool BlockEngine::SendMessages(CNode* pto)
 {
     CheckForShutdown(2);
     //CRITICAL_BLOCK(cs_main)
@@ -1430,7 +1528,7 @@ bool SendMessages(CNode* pto)
 // BitcoinMiner
 //
 
-int FormatHashBlocks(void* pbuffer, unsigned int len)
+int BlockEngine::FormatHashBlocks(void* pbuffer, unsigned int len)
 {
     unsigned char* pdata = (unsigned char*)pbuffer;
     unsigned int blocks = 1 + ((len + 8) / 64);
@@ -1449,7 +1547,7 @@ using CryptoPP::ByteReverse;
 static int detectlittleendian = 1;
 
 // 计算hash
-void BlockSHA256(const void* pin, unsigned int nBlocks, void* pout)
+void BlockEngine::BlockSHA256(const void* pin, unsigned int nBlocks, void* pout)
 {
     unsigned int* pinput = (unsigned int*)pin;
     unsigned int* pstate = (unsigned int*)pout;
@@ -1478,7 +1576,7 @@ void BlockSHA256(const void* pin, unsigned int nBlocks, void* pout)
 }
 
 // 节点挖矿
-bool BitcoinMiner()
+bool BlockEngine::BitcoinMiner()
 {
     printf("BitcoinMiner started\n");
     ////SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
@@ -1672,7 +1770,7 @@ bool BitcoinMiner()
 //
 
 
-int64 GetBalance()
+int64 BlockEngine::GetBalance()
 {
     int64 nStart, nEnd;
   //  QueryPerformanceCounter((LARGE_INTEGER*)&nStart);
@@ -1690,13 +1788,13 @@ int64 GetBalance()
     }
 
 //    QueryPerformanceCounter((LARGE_INTEGER*)&nEnd);
-    ///printf(" GetBalance() time = %16I64d\n", nEnd - nStart);
+    printf(" GetBalance() nTotal = %lld\n", nTotal);
     return nTotal;
 }
 
 
 
-bool SelectCoins(int64 nTargetValue, set<CWalletTx*>& setCoinsRet)
+bool BlockEngine::SelectCoins(int64 nTargetValue, set<CWalletTx*>& setCoinsRet)
 {
     setCoinsRet.clear();
 
@@ -1705,7 +1803,9 @@ bool SelectCoins(int64 nTargetValue, set<CWalletTx*>& setCoinsRet)
     CWalletTx* pcoinLowestLarger = NULL;
     vector<pair<int64, CWalletTx*> > vValue;
     int64 nTotalLower = 0;
-    printf("SelectCoins() nTargetValue:[%lu] --WalletSize[%d]\n", nTargetValue, mapWallet.size());
+    mapWallet.count(18);
+    printf("SelectCoins() WalletSize[%d]\n", mapWallet.size());
+    printf("nTragetValue[%lld]\n", nTargetValue);
     //CRITICAL_BLOCK(cs_mapWallet)
     {
         for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
@@ -1714,6 +1814,7 @@ bool SelectCoins(int64 nTargetValue, set<CWalletTx*>& setCoinsRet)
             if (!pcoin->IsFinal() || pcoin->m_bSpent)
                 continue;
             int64 n = pcoin->GetCredit();
+            printf("SelectCoins---coin Value[%lld], nLowestLarger[%lld]\n", n, nLowestLarger);
             if (n <= 0)
                 continue;
             if (n < nTargetValue)
@@ -1728,12 +1829,13 @@ bool SelectCoins(int64 nTargetValue, set<CWalletTx*>& setCoinsRet)
             }
             else if (n < nLowestLarger)
             {
+                printf("SelectCoins---Find coin Value[%lld]\n", n);
                 nLowestLarger = n;
                 pcoinLowestLarger = pcoin;
             }
         }
     }
-    printf("SelectCoins() nTotalLower:[%lu] \n", nTotalLower);
+    printf("SelectCoins() nTotalLower:[%lld] \n", nTotalLower);
     if (nTotalLower < nTargetValue)
     {
         if (pcoinLowestLarger == NULL)
@@ -1800,7 +1902,7 @@ bool SelectCoins(int64 nTargetValue, set<CWalletTx*>& setCoinsRet)
 
 
 
-bool CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, int64& nFeeRequiredRet)
+bool BlockEngine::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, int64& nFeeRequiredRet)
 {
     nFeeRequiredRet = 0;
     {
@@ -1887,7 +1989,7 @@ bool CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, in
 }
 
 // Call after CreateTransaction unless you want to abort
-bool CommitTransactionSpent(const CWalletTx& wtxNew)
+bool BlockEngine::CommitTransactionSpent(const CWalletTx& wtxNew)
 {
     //// todo: make this transactional, never want to add a transaction
     ////  without marking spent transactions
@@ -1912,7 +2014,7 @@ bool CommitTransactionSpent(const CWalletTx& wtxNew)
 
 
 
-bool SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew)
+bool BlockEngine::SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew)
 {
 //CRITICAL_BLOCK(cs_main)
     {
@@ -1950,3 +2052,4 @@ bool SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew)
 }
 
 /* EOF */
+

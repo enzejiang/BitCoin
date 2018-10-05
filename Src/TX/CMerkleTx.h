@@ -57,9 +57,9 @@ public:
 	// 获取默克尔树对应的贷方金额的时候，对于币基交易，一定要等对应的block足够成熟了才能使用
     int64 GetCredit() const
     {
-        // Must wait until coinbase is safely deep enough in the chain before valuing it
-        if (IsCoinBase() && GetBlocksToMaturity() > 0)
-            return 0;
+//        // Must wait until coinbase is safely deep enough in the chain before valuing it
+//        if (IsCoinBase() && GetBlocksToMaturity() > 0)
+//            return 0;
         return CTransaction::GetCredit();
     }
 
