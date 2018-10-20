@@ -15,8 +15,13 @@
  *
  * =====================================================================================
  */
-#include "script.h"
-#include "TX/CTransaction.h"
+
+#include "WalletService/CTransaction.h"
+#include "WalletService/WalletServ.h"
+namespace Enze
+{
+
+
 uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
     if (nIn >= txTo.m_vTxIn.size())
@@ -72,11 +77,14 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
         txTmp.m_vTxIn.resize(1);
     }
 
+    printf("%s---%d---%s\n", __FILE__, __LINE__, __func__);
+#if 0
     // Serialize and hash
     CDataStream ss(SER_GETHASH);
     ss.reserve(10000);
     ss << txTmp << nHashType;
     return Hash(ss.begin(), ss.end());
+#endif
 }
 
 // 判断这个交易是不是节点本身自己的交易
@@ -94,8 +102,8 @@ bool ExtractPubKey(const CScript& scriptPubKey, bool fMineOnly, vector<unsigned 
     if (!Solver(scriptPubKey, vSolution))
         return false;
 
-    map<uint160, vector<unsigned char> >& mapPubKeys = BlockEngine::getInstance()->mapPubKeys;
-    map<vector<unsigned char>, CPrivKey>& mapKeys = BlockEngine::getInstance()->mapKeys;
+    map<uint160, vector<unsigned char> >& mapPubKeys = WalletServ::getInstance()->mapPubKeys;
+    map<vector<unsigned char>, CPrivKey>& mapKeys = WalletServ::getInstance()->mapKeys;
     {
         foreach(PAIRTYPE(opcodetype, valtype)& item, vSolution)
         {
@@ -952,5 +960,6 @@ bool EvalScript(const CScript& script, const CTransaction& txTo, unsigned int nI
 
 #undef top
 
+}
 /* EOF */
 

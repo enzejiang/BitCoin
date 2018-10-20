@@ -15,12 +15,12 @@
  *
  * =====================================================================================
  */
-#include "CommonBase/headers.h"
-#include "CommonBase/BlockEngine.h"
 #include "CommonBase/base58.h"
 #include "CommonBase/market.h"
-#include "Network/net.h"
-#include "Db/db.h"
+#include "BlockEngine/BlockEngine.h"
+#include "NetWorkService/NetWorkServ.h"
+#include "WalletService/WalletServ.h"
+#include "DAO/DaoServ.h"
 #include "TestTxSend.h"
 #include <iostream>
 using namespace std;
@@ -28,6 +28,7 @@ bool fRandSendTest = false;
 void SendMoneyByIPAddr(const string& strAddress);
 void SendMoneyByBitAddr(const string& strAddress);
 int ThreadRandSendTest(const string & strAddress);
+void* ThreadBitcoinMiner(void* parg);
 bool OnInit(int argc, char* argv[]);
 vector<pthread_t> gThreadList;
 
@@ -64,11 +65,12 @@ map<string, string> ParseParameters(int argc, char* argv[])
 bool OnInit(int argc, char* argv[])
 {
 
-
+    NetWorkServ::getInstance()->initiation();
     BlockEngine::getInstance()->initiation();
+    WalletServ::getInstance()->initiation();
 	// 将不在块中的钱包交易放入到对应的内存交易对象mapTransactions中
     // Add wallet transactions that aren't already in a block to mapTransactions
-    BlockEngine::getInstance()->ReacceptWalletTransactions();
+    WalletServ::getInstance()->ReacceptWalletTransactions();
 
 
     //
@@ -83,7 +85,7 @@ bool OnInit(int argc, char* argv[])
     
     string strErrors;
 	// 启动对应节点的链接（接收消息和发送消息）
-    if (StartNode(strErrors));
+    if (Enze::NetWorkServ::getInstance()->StartNode());
         printf("Start Bitcoin Node\n");
     if (BlockEngine::getInstance()->fGenerateBitcoins) //节点进行挖矿
     {
@@ -97,7 +99,7 @@ bool OnInit(int argc, char* argv[])
 
     }
     sleep(30);
-    printf("mapWallet.size() = %d\n", BlockEngine::getInstance()->mapWallet.size());
+    printf("mapWallet.size() = %d\n", WalletServ::getInstance()->mapWallet.size());
     
     if (argc == 2) {
         ThreadRandSendTest(argv[1]);
@@ -110,6 +112,16 @@ bool OnInit(int argc, char* argv[])
 
     return true;
 }
+
+void* ThreadBitcoinMiner(void* parg)
+{
+    try
+    {
+        bool fRet = BlockEngine::getInstance()->BitcoinMiner();
+        printf("BitcoinMiner returned %s\n\n\n", fRet ? "true" : "false");
+    }
+    CATCH_PRINT_EXCEPTION("BitcoinMiner()")
+}
 #if 1
 // randsendtest to bitcoin address
 void* ThreadRandSendTest(void* parg)
@@ -120,7 +132,7 @@ void* ThreadRandSendTest(void* parg)
 #endif
 int ThreadRandSendTest(const string & strAddress)
 {
-    printf("ThreadRandSendTest: Bitcoin address '%s' start mapWallet.size() %d \n", strAddress.c_str(), BlockEngine::getInstance()->mapWallet.size());
+    printf("ThreadRandSendTest: Bitcoin address '%s' start mapWallet.size() %d \n", strAddress.c_str(), WalletServ::getInstance()->mapWallet.size());
     uint160 hash160;
     if (!AddressToHash160(strAddress, hash160))
     {
@@ -144,20 +156,19 @@ void SendMoneyByIPAddr(const string& strAddress)
         printf("Invalid address[%s]--to Send Coins\n",strAddress.c_str());
         return;
     }
-    BlockEngine::getInstance()->mapWallet.count(18);
     //CRITICAL_BLOCK(cs_mapWallet)
     // Message
     CWalletTx wtx;
     wtx.m_mapValue["to"] = strAddress;
-    wtx.m_mapValue["from"] = addrLocalHost.ToString();
+    wtx.m_mapValue["from"] = Enze::NetWorkServ::getInstance()->getLocakAddr().ToString();//addrLocalHost.ToString();
     wtx.m_mapValue["message"] = "Enze's First Tx";
     int64 nValue =  100 * CENT;
-    printf("SendMoneyByIPAddr WalletSize[%d]\n", BlockEngine::getInstance()->mapWallet.size());
+    printf("SendMoneyByIPAddr WalletSize[%d]\n", WalletServ::getInstance()->mapWallet.size());
     TestTxSend* pSend = new TestTxSend(addr, nValue, wtx);
     
-    map<string, string>& mapAddressBook = BlockEngine::getInstance()->mapAddressBook;
+    map<string, string>& mapAddressBook = WalletServ::getInstance()->mapAddressBook;
     if (!mapAddressBook.count(strAddress))
-        SetAddressBookName(strAddress, "");
+        Enze::DaoServ::getInstance()->SetAddressBookName(strAddress, "");
 
 
 }
@@ -175,16 +186,16 @@ void SendMoneyByBitAddr(const string& strAddress)
         // Message
         CWalletTx wtx;
         wtx.m_mapValue["to"] = strAddress;
-        wtx.m_mapValue["from"] = addrLocalHost.ToString();
+        wtx.m_mapValue["from"] = Enze::NetWorkServ::getInstance()->getLocakAddr().ToString();//addrLocalHost.ToString();
         static int nRep;
         wtx.m_mapValue["message"] = strprintf("randsendtest %d\n", ++nRep);
 
         // Value
         int64 nValue = (GetRand(9) + 1) * 100 * CENT;
-        if (BlockEngine::getInstance()->GetBalance() < nValue)
+        if (WalletServ::getInstance()->GetBalance() < nValue)
         {
             //wxMessageBox("Out of money  ");
-            printf("Out of money, SendValue[%d]--Blance[%d]\n", nValue, BlockEngine::getInstance()->GetBalance());
+            printf("Out of money, SendValue[%d]--Blance[%d]\n", nValue, WalletServ::getInstance()->GetBalance());
             return ;
         }
         nValue += (nRep % 100) * CENT;
@@ -193,7 +204,7 @@ void SendMoneyByBitAddr(const string& strAddress)
         CScript scriptPubKey;
         scriptPubKey << OP_DUP << OP_HASH160 << hash160 << OP_EQUALVERIFY << OP_CHECKSIG;
 
-        if (!BlockEngine::getInstance()->SendMoney(scriptPubKey, nValue, wtx))
+        if (!WalletServ::getInstance()->SendMoney(scriptPubKey, nValue, wtx))
             return;
     }
 

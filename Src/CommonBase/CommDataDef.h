@@ -16,9 +16,11 @@
  * =====================================================================================
  */
 
-#ifndef CXX_BT_COMMON_DATA_DEFINE_H
-#define CXX_BT_COMMON_DATA_DEFINE_H
+#ifndef EZ_BT_COMMON_DATA_DEFINE_H
+#define EZ_BT_COMMON_DATA_DEFINE_H
 
+namespace Enze
+{
 
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 typedef __int64  int64;
@@ -38,6 +40,19 @@ const int64 CENT = 1000000;
 const int COINBASE_MATURITY = 2;// 币基成熟度
 // 工作量证明的难度
 const int VERSION = 105;
-#endif /* CXX_BT_COMMON_DATA_DEFINE_H */
+enum
+{
+    // primary actions
+    SER_NETWORK         = (1 << 0),
+    SER_DISK            = (1 << 1),
+    SER_GETHASH         = (1 << 2),
+
+    // modifiers
+    SER_SKIPSIG         = (1 << 16),
+    SER_BLOCKHEADERONLY = (1 << 17),
+};
+} //end namespace
+
+#endif /* EZ_BT_COMMON_DATA_DEFINE_H */
 /* EOF */
 

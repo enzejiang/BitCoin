@@ -1,11 +1,15 @@
 // Copyright (c) 2009 Satoshi Nakamoto
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
-#ifndef CXX_BT_SCRIPT_H
-#define CXX_BT_SCRIPT_H
+#ifndef EZ_BT_SCRIPT_H
+#define EZ_BT_SCRIPT_H
 
 #include "CommonBase/bignum.h"
 #include "util.h"
+
+namespace Enze
+{
+
 typedef vector<unsigned char> valtype;
 extern bool CastToBool(const valtype& vch);
 static const valtype vchFalse(0);
@@ -17,13 +21,6 @@ static const CBigNum bnFalse(0);
 static const CBigNum bnTrue(1);
 extern void MakeSameSize(valtype& vch1, valtype& vch2);
 class CTransaction;
-enum
-{
-    SIGHASH_ALL = 1,
-    SIGHASH_NONE = 2,
-    SIGHASH_SINGLE = 3,
-    SIGHASH_ANYONECANPAY = 0x80,
-};
 
 
 
@@ -599,5 +596,8 @@ extern bool Solver(const CScript& scriptPubKey, vector<pair<opcodetype, valtype>
 extern bool Solver(const CScript& scriptPubKey, uint256 hash, int nHashType, CScript& scriptSigRet);
 extern bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
-#endif /* CXX_BT_SCRIPT_H */
+}//end namespace
+
+
+#endif /* EZ_BT_SCRIPT_H */
 /* EOF */

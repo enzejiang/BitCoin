@@ -2,10 +2,8 @@ syntax = "proto3";
 package Enze;
 message Address
 {
-    uint64 m_nServices = 1;
+    uint64 nServices = 1;
     int32  ip = 2;
     int32  port = 3;
     uint32 nTime  = 4;
-    uint32 nLastFailed = 5;
-    string pchReserved = 6;
 }

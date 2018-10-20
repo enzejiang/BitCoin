@@ -6,10 +6,15 @@
 #include "market.h"
 #include "key.h"
 #include "CommonBase/uint256.h"
-#include "Db/CReviewDB.h"
+#include "DAO/DaoServ.h"
 
 
+using namespace Enze;
 
+namespace Enze 
+{
+map<uint256, CProduct> mapMyProducts;
+map<uint256, CProduct> mapProducts;
 
 
 
@@ -18,13 +23,6 @@
 //
 
 //// later figure out how these are persisted
-map<uint256, CProduct> mapMyProducts;
-
-
-
-
-map<uint256, CProduct> mapProducts;
-//CCriticalSection cs_mapProducts;
 
 bool AdvertInsert(const CProduct& product)
 {
@@ -249,11 +247,10 @@ bool CProduct::CheckProduct()
         return false;
 
     // Look up seller's atom count
-    CReviewDB reviewdb("r");
+    //CReviewDB& reviewdb = DaoServ::getInstance()->getReviewDb();
     CUser user;
-    reviewdb.ReadUser(GetUserHash(), user);
+    DaoServ::getInstance()->ReadUser(GetUserHash(), user);
     nAtoms = user.GetAtomCount();
-    reviewdb.Close();
 
     ////// delme, this is now done by AdvertInsert
     //// Store to memory
@@ -262,5 +259,5 @@ bool CProduct::CheckProduct()
 
     return true;
 }
-
+} //end namespace
 /* EOF */

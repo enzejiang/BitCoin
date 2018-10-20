@@ -26,10 +26,13 @@
 // see www.keylength.com
 // script supports up to 75 for single byte push
 
-#ifndef CXX_BT_KEY_H
-#define CXX_BT_KEY_H
+#ifndef EZ_BT_KEY_H
+#define EZ_BT_KEY_H
+#include "CommonBase/CommFunctionDef.h"
 #include "CommonBase/uint256.h"
-#include "serialize.h"
+namespace Enze
+{
+
 class key_error : public std::runtime_error
 {
 public:
@@ -156,5 +159,7 @@ public:
         return key.Verify(hash, vchSig);
     }
 };
-#endif
+
+} //end namespace
+#endif /* EZ_BT_KEY_H */
 /* EOF */

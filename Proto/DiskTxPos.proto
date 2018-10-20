@@ -1,0 +1,8 @@
+syntax = "proto3";
+package Enze;
+message DiskTxPos
+{
+    uint32 nFile = 1; // 块所在文件的信息，而且块文件的命名一般是blk${nFile}.dat}
+    uint32 nBlockPos = 2; // 当前块在对应块文件中的偏移
+    uint32 nTxPos = 3; // 交易在对应块中的偏移
+}

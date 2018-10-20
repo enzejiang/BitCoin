@@ -9,6 +9,7 @@
 #include <string.h>
 #include "util.h"
 
+using namespace Enze;
 bool fDebug = false;
 
 

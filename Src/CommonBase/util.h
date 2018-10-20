@@ -2,11 +2,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef CXX_BT_UTIL_H
-#define CXX_BT_UTIL_H
-
-#include "CommonBase/uint256.h"
-
+#ifndef EZ_BT_UTIL_H
+#define EZ_BT_UTIL_H
 #ifndef _MSC_VER
 #define __forceinline  inline
 #endif
@@ -26,7 +23,7 @@
 #ifdef snprintf
 #undef snprintf
 #endif
-#define snprintf my_snprintf
+//#define snprintf my_snprintf
 
 #ifndef PRId64
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__MSVCRT__)
@@ -44,8 +41,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "CommonBase/headers.h"
 #include "CommonBase/bignum.h"
-
+using namespace Enze;
 using namespace std;
 typedef long long  int64;
 const long long _I64_MAX = 0x7FFFFFFFFFFFFFFF;
@@ -312,13 +310,17 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
 template<typename T>
 uint256 SerializeHash(const T& obj, int nType=SER_GETHASH, int nVersion=VERSION)
 {
+    printf("%s --%d---%s\n", __FILE__, __LINE__, __func__); 
     // Most of the time is spent allocating and deallocating CDataStream's
     // buffer.  If this ever needs to be optimized further, make a CStaticStream
     // class with its buffer on the stack.
+    return 0;
+#if 0
     CDataStream ss(nType, nVersion);
     ss.reserve(10000);
     ss << obj;
     return Hash(ss.begin(), ss.end());
+#endif
 }
 
 inline uint160 Hash160(const vector<unsigned char>& vch)
@@ -330,5 +332,6 @@ inline uint160 Hash160(const vector<unsigned char>& vch)
     return hash2;
 }
 
-#endif /* CXX_BT_UTIL_H */
+
+#endif /* EZ_BT_UTIL_H */
 /* EOF */

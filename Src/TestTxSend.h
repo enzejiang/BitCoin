@@ -16,13 +16,14 @@
  * =====================================================================================
  */
 
-#ifndef CXX_BT_TEST_TX_SEND_H
-#define CXX_BT_TEST_TX_SEND_H
+#ifndef CXX_BT_TEST_WalletService_SEND_H
+#define CXX_BT_TEST_WalletService_SEND_H
 
-#include "headers.h"
-#include "Network/CAddress.h"
-#include "TX/CWalletTx.h"
-class CDataStream;
+#include "CommonBase/headers.h"
+#include "CommonBase/CommFunctionDef.h"
+#include "NetWorkService/CAddress.h"
+#include "WalletService/CWalletTx.h"
+using namespace Enze;
 class TestTxSend
 {
 	

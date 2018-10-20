@@ -2,8 +2,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef CXX_BT_HEADERS_H
-#define CXX_BT_HEADERS_H
+#ifndef EZ_BT_HEADERS_H
+#define EZ_BT_HEADERS_H
 
 #ifdef _MSC_VER
 #pragma warning(disable:4786)
@@ -51,5 +51,5 @@ using namespace std;
 using namespace boost;
 
 
-#endif /* CXX_BT_HEADERS_H */
+#endif /* EZ_BT_HEADERS_H */
 /* EOF */

@@ -1,13 +1,17 @@
 // Copyright (c) 2009 Satoshi Nakamoto
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
-#ifndef CXX_BT_MARKET_H
-#define CXX_BT_MARKET_H
+#ifndef EZ_BT_MARKET_H
+#define EZ_BT_MARKET_H
 
 #include "CommonBase/uint256.h"
-#include "Network/CAddress.h"
-#include "serialize.h"
+#include "NetWorkService/CAddress.h"
 #include "util.h"
+
+namespace Enze
+{
+
+
 class CUser;
 class CReview;
 class CProduct;
@@ -40,15 +44,6 @@ public:
     {
     }
 
-    IMPLEMENT_SERIALIZE
-    (
-        if (!(nType & SER_GETHASH))
-            READWRITE(nVersion);
-        READWRITE(vAtomsIn);
-        READWRITE(vAtomsNew);
-        READWRITE(vAtomsOut);
-        READWRITE(vLinksOut);
-    )
 
     void SetNull()
     {
@@ -97,18 +92,6 @@ public:
         nAtoms = 0;
     }
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(this->nVersion);
-        nVersion = this->nVersion;
-        if (!(nType & SER_DISK))
-            READWRITE(hashTo);
-        READWRITE(mapValue);
-        READWRITE(vchPubKeyFrom);
-        if (!(nType & SER_GETHASH))
-            READWRITE(vchSig);
-    )
-
     uint256 GetHash() const { return SerializeHash(*this); }
     uint256 GetSigHash() const { return SerializeHash(*this, SER_GETHASH|SER_SKIPSIG); }
     uint256 GetUserHash() const { return Hash(vchPubKeyFrom.begin(), vchPubKeyFrom.end()); }
@@ -148,24 +131,6 @@ public:
         nSequence = 0;
     }
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(this->nVersion);
-        nVersion = this->nVersion;
-        READWRITE(addr);
-        READWRITE(mapValue);
-        if (!(nType & SER_GETHASH))
-        {
-            READWRITE(mapDetails);
-            READWRITE(vOrderForm);
-            READWRITE(nSequence);
-        }
-        READWRITE(vchPubKeyFrom);
-        if (!(nType & SER_GETHASH))
-            READWRITE(vchSig);
-        if (nType & SER_DISK)
-            READWRITE(nAtoms);
-    )
 
     uint256 GetHash() const { return SerializeHash(*this); }
     uint256 GetSigHash() const { return SerializeHash(*this, SER_GETHASH|SER_SKIPSIG); }
@@ -177,14 +142,11 @@ public:
 };
 
 
-
-
-
-
-
-
 extern map<uint256, CProduct> mapProducts;
 //extern CCriticalSection cs_mapProducts;
 extern map<uint256, CProduct> mapMyProducts;
-#endif /* CXX_BT_MARKET_H */
+
+} //end namespace
+
+#endif /* EZ_BT_MARKET_H */
 /* EOF */

@@ -1,49 +1,6 @@
 syntax = "proto3";
-import "Transaction.proto";
+import "WalletTx.proto"; 
 package Enze;
-
-message MerkleTx
-{
-    Transaction cTxInfo = 1;
-    
-    string  hashBlock = 2;// 交易所在block对应的hash值，因为block中有对应整个交易的默克尔树，这样才能根据分支来校验当前交易是否在block中
-    repeated string vMerkleBranch = 3; // 当前交易对应的默克尔分支
-    int32 nIndex = 4;// 当前交易在对应的block对应的输入m_vTrans列表中的索引，CMerkleTx就是根据索引来计算这个交易对应的默克尔树分支的
-    // memory only
-    bool bMerkleVerified = 5;// 标记默克尔交易是否已经校验，如果没有校验则进行校验，校验之后将这个值设为true
-    
-}
-message OrderForm 
-{
-    map<string, string> mapOrder = 1;
-}
-message WalletTx
-{
-    MerkleTx cSelfMekleInfo = 1; 
-    
-    repeated MerkleTx vPrevTx = 2; // 当前交易A对应的输入对应的交易B，如果B所在block到最长链末尾的长度小于3，则将次交易放入
-    /*
-	主要用于存放一下自定义的值
-	wtx.mapValue["to"] = strAddress;
-	wtx.mapValue["from"] = m_textCtrlFrom->GetValue();
-	wtx.mapValue["message"] = m_textCtrlMessage->GetValue();
-	*/
-	map<string, string> mapValue = 3;
-	// 表单控件信息
-    repeated OrderForm OrderList = 4;
-    //unsigned int m_bTimeReceivedIsTxTime;// 接收时间是否是交易时间标记
-    bool bTimeReceivedIsTxTime = 5;// 接收时间是否是交易时间标记
-    uint32  uTimeReceived = 6;  // time received by this node 交易被这个节点接收的时间
-    /*  
-    char m_bFromMe;
-    char m_bSpent; // 是否花费交易标记
-    */
-    bool m_bFromMe = 7;
-    bool m_bSpent = 8; // 是否花费交易标记
-    //// probably need to sign the order info so know it came from payer
-    // memory only
-    uint32 uTimeDisplayed = 9;
-}
 
 message Order 
 {

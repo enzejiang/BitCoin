@@ -1,16 +1,17 @@
 // Copyright (c) 2009 Satoshi Nakamoto
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
-#ifndef CXX_BT_BIGNUM_H
-#define CXX_BT_BIGNUM_H
+#ifndef EZ_BT_BIGNUM_H
+#define EZ_BT_BIGNUM_H
 #include <stdexcept>
 #include <vector>
 #include <openssl/bn.h>
 #include <openssl/ossl_typ.h>
 
-#include "uint256.h"
-#include "serialize.h"
+#include "CommonBase/uint256.h"
 
+namespace Enze
+{
 
 class bignum_error : public std::runtime_error
 {
@@ -313,20 +314,24 @@ public:
 
     unsigned int GetSerializeSize(int nType=0, int nVersion=VERSION) const
     {
-        return ::GetSerializeSize(getvch(), nType, nVersion);
+        printf("%s--%d---%s\n", __FILE__, __LINE__,  __func__);
+        return 0;
+        //return ::GetSerializeSize(getvch(), nType, nVersion);
     }
 
     template<typename Stream>
     void Serialize(Stream& s, int nType=0, int nVersion=VERSION) const
     {
-        ::Serialize(s, getvch(), nType, nVersion);
+        printf("%s--%d---%s\n", __FILE__, __LINE__,  __func__);
+        //::Serialize(s, getvch(), nType, nVersion);
     }
 
     template<typename Stream>
     void Unserialize(Stream& s, int nType=0, int nVersion=VERSION)
     {
+        printf("%s--%d---%s\n", __FILE__, __LINE__,  __func__);
         vector<unsigned char> vch;
-        ::Unserialize(s, vch, nType, nVersion);
+     //   ::Unserialize(s, vch, nType, nVersion);
         setvch(vch);
     }
 
@@ -499,5 +504,6 @@ inline bool operator>=(const CBigNum& a, const CBigNum& b) { return (BN_cmp(&a, 
 inline bool operator<(const CBigNum& a, const CBigNum& b)  { return (BN_cmp(&a, &b) < 0); }
 inline bool operator>(const CBigNum& a, const CBigNum& b)  { return (BN_cmp(&a, &b) > 0); }
 
-#endif
+} // end namespace
+#endif /* EZ_BT_BIGNUM_H */
 /* EOF */

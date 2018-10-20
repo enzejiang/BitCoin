@@ -3,9 +3,12 @@
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
 #include "script.h"
-#include "TX/CTransaction.h"
 #include "key.h"
+#include "WalletService/CTransaction.h"
+#include "WalletService/WalletServ.h"
 
+namespace Enze
+{
 
 
 
@@ -127,8 +130,8 @@ bool Solver(const CScript& scriptPubKey, uint256 hash, int nHashType, CScript& s
     vector<pair<opcodetype, valtype> > vSolution;
     if (!Solver(scriptPubKey, vSolution))
         return false;
-    map<vector<unsigned char>, CPrivKey>& mapKeys = BlockEngine::getInstance()->mapKeys;
-    map<uint160, vector<unsigned char> >& mapPubKeys = BlockEngine::getInstance()->mapPubKeys;
+    map<vector<unsigned char>, CPrivKey>& mapKeys = WalletServ::getInstance()->mapKeys;
+    map<uint160, vector<unsigned char> >& mapPubKeys = WalletServ::getInstance()->mapPubKeys;
     
     {
         foreach(PAIRTYPE(opcodetype, valtype)& item, vSolution)
@@ -174,10 +177,7 @@ bool Solver(const CScript& scriptPubKey, uint256 hash, int nHashType, CScript& s
 
 
 
-
-
-
-
+} //end namespace
 
 
 /* EOF */

@@ -1,14 +1,16 @@
 // Copyright (c) 2009 Satoshi Nakamoto
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
-#ifndef CXX_BT_UINT256_H
-#define CXX_BT_UINT256_H
+#ifndef EZ_BT_UINT256_H
+#define EZ_BT_UINT256_H
 
 #include <limits.h>
 #include <string>
 #include "headers.h"
 #include "CommonBase/CommDataDef.h"
 
+namespace Enze
+{
 
 inline int Testuint256AdHoc(vector<string> vArg);
 
@@ -743,5 +745,7 @@ inline int Testuint256AdHoc(vector<string> vArg)
     return (0);
 }
 
-#endif /* CXX_BT_UINT256_H */
+} //end namespace
+
+#endif /* EZ_BT_UINT256_H */
 /* EOF */

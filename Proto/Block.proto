@@ -9,13 +9,11 @@ message Block
     string hashPrevBlock = 2; // 前一个块对应的hash
     string hashMerkleRoot = 3; // 默克尔对应的根
 	// 取前11个区块对应的创建时间平均值
-    uint32 m_uTime = 4; // 单位为秒，取区块链中对应的前多少个区块对应时间的中位数，如果不存在前一个则去当前时间
+    uint32 uTime = 4; // 单位为秒，取区块链中对应的前多少个区块对应时间的中位数，如果不存在前一个则去当前时间
     uint32 uBits = 5; // 记录本区块难度
     uint32 uNonce = 6; // 工作量证明获得随机数，这个随机数正好满足当前挖矿对应的难度
     // network and disk
     repeated Transaction vTrans = 7; // 块中交易列表
-    // memory only
-    repeated string vMerkleTree = 8; // 整个交易对应的默克尔树列表
 
 }
 

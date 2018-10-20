@@ -16,13 +16,13 @@
  * =====================================================================================
  */
 #include "TestTxSend.h"
-#include "BlockEngine.h"
-#include "Network/net.h"
+#include "WalletServ.h"
+#include "NetWorkService/NetWorkServ.h"
 //////////////////////////////////////////////////////////////////////////////
 //
 // TestTxSend
 //
-
+using namespace Enze;
 TestTxSend::TestTxSend(const CAddress& addrIn, int64 nPriceIn, const CWalletTx& wtxIn) // we have to give null so parent can't destroy us
 {
     addr = addrIn;
@@ -103,8 +103,8 @@ void TestTxSend::StartTransfer()
 {
     printf("start TestTxSend::StartTransfer\n");
     // Make sure we have enough money
-    int64 nTransactionFee = BlockEngine::getInstance()->nTransactionFee; 
-    if (nPrice + nTransactionFee > BlockEngine::getInstance()->GetBalance())
+    int64 nTransactionFee = WalletServ::getInstance()->nTransactionFee; 
+    if (nPrice + nTransactionFee > WalletServ::getInstance()->GetBalance())
     {
         error("You don't have enough money");
         return;
@@ -113,7 +113,7 @@ void TestTxSend::StartTransfer()
     // We may have connected already for product details
     if (!Status("Connecting..."))
         return;
-    CNode* pnode = ConnectNode(addr, 5 * 60);
+    CNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
     if (!pnode)
     {
         error("Unable to connect");
@@ -159,7 +159,7 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
     }
 
     // Should already be connected
-    CNode* pnode = ConnectNode(addr, 5 * 60);
+    CNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
     if (!pnode)
     {
         error("Lost connection");
@@ -173,17 +173,17 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
         // Pay
         if (!Status("Creating transaction..."))
             return;
-        int64 nTransactionFee = BlockEngine::getInstance()->nTransactionFee; 
+        int64 nTransactionFee = WalletServ::getInstance()->nTransactionFee; 
         
-        if (nPrice + nTransactionFee > BlockEngine::getInstance()->GetBalance())
+        if (nPrice + nTransactionFee > WalletServ::getInstance()->GetBalance())
         {
             error("You don't have enough money");
             return;
         }
         int64 nFeeRequired;
-        if (!BlockEngine::getInstance()->CreateTransaction(scriptPubKey, nPrice, wtx, nFeeRequired))
+        if (!WalletServ::getInstance()->CreateTransaction(scriptPubKey, nPrice, wtx, nFeeRequired))
         {
-            if (nPrice + nFeeRequired > BlockEngine::getInstance()->GetBalance())
+            if (nPrice + nFeeRequired > WalletServ::getInstance()->GetBalance())
                 printf("This is an oversized transaction that requires a transaction fee of %s", FormatMoney(nFeeRequired).c_str());
             else
                 error("TestTxSend::OnReply2--Transaction creation failed");
@@ -191,7 +191,7 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
         }
 
         // Commit
-        if (!BlockEngine::getInstance()->CommitTransactionSpent(wtx))
+        if (!WalletServ::getInstance()->CommitTransactionSpent(wtx))
         {
             error("error finalizing payment");
             return;

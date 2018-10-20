@@ -1,0 +1,9 @@
+syntax = "proto3";
+import "DiskTxPos.proto";
+package Enze;
+
+message TxIndex
+{
+    DiskTxPos cDiskPos = 1;// 交易对应的在硬盘中文件的位置
+    repeated DiskTxPos vSpent = 2; //标记交易的输出是否已经被消费了，根据下标来标记对应交易指定位置的输出是否已经被消费了
+}

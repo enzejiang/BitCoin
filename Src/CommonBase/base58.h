@@ -12,13 +12,17 @@
 // - Doubleclicking selects the whole number as one word if it's all alphanumeric.
 //
 
-#ifndef CXX_BT_BASE58_H
-#define CXX_BT_BASE58_H
+#ifndef EZ_BT_BASE58_H
+#define EZ_BT_BASE58_H
 #include <stdio.h>
 #include "headers.h"
 #include "util.h"
 #include "CommonBase/bignum.h"
 #include "CommonBase/uint256.h"
+
+namespace Enze
+{
+
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 
@@ -208,5 +212,8 @@ inline string PubKeyToAddress(const vector<unsigned char>& vchPubKey)
 {
     return Hash160ToAddress(Hash160(vchPubKey));
 }
-#endif
+
+}// end namespace 
+
+#endif /*EZ_BT_BASE58_H  */
 /* EOF */
