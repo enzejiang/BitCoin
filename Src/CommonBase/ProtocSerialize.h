@@ -17,7 +17,9 @@
  */
 #ifndef EN_BT_PROTOC_SERIAL_H
 #define EN_BT_PROTOC_SERIAL_H
-
+#include <map>
+#include "ProtocSrc/GetBlocks.pb.h"
+using namespace std;
 namespace Enze
 {
     class CAddress;
@@ -43,7 +45,11 @@ namespace Enze
     class OrderForm;
     class Block;
     class CBlock;
-    
+    class CInv;
+    class Inventory;
+    class CBlockLocator;
+    class CReview;
+    class Review;
     bool UnSeriaAddress(const Address& cProtoc, CAddress& addr);
     bool SeriaAddress(const CAddress& addr, Address& cProtoc);
     
@@ -79,9 +85,16 @@ namespace Enze
     bool UnSeriaBlock(const Block& cProtoc, CBlock& cTargetData);
     bool SeriaBlock(const CBlock& cSrcData, Block& cProtoc);
 
+    bool UnSeriaInv(const Inventory& pbInv, CInv& cInv);
+    bool SeriaInv(const CInv&cInv, Inventory& pbInv);
 
+    bool UnSeriaLoctor(const GetBlocks_BlockLocator& pbLoctor,CBlockLocator& bkLoctor);
+    bool SeriaLoctor(const CBlockLocator&bkLockor, GetBlocks_BlockLocator& pbLoctor);
 
+    bool UnSeriaReview(const Review& pbReview, CReview& cReview);
+    bool SeriaReview(const CReview& cReview, Review& pbReview);
 }
+
 
 
 #endif 

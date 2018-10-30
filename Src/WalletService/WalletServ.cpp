@@ -17,6 +17,8 @@
  */
 #include "CommonBase/uint256.h"
 #include "CommonBase/base58.h"
+#include "CommonBase/ProtocSerialize.h"
+#include "ProtocSrc/Transaction.pb.h"
 #include "DAO/DaoServ.h"
 #include "BlockEngine/BlockEngine.h"
 #include "WalletService/WalletServ.h"
@@ -256,38 +258,38 @@ bool WalletServ::EraseFromWallet(uint256 hash)
 // mapOrphanTransactions
 //
 // 增加孤儿交易
-void WalletServ::AddOrphanTx(const CDataStream& vMsg)
+void WalletServ::AddOrphanTx(const Transaction& pbTx)
 {
-    CTransaction tx;
-    CDataStream(vMsg) >> tx;
-    uint256 hash = tx.GetHash();
+    CTransaction *tx = new CTransaction();
+    UnSeriaTransaction(pbTx, *tx);
+
+    uint256 hash = tx->GetHash();
     if (mapOrphanTransactions.count(hash))
         return;
-    CDataStream* pvMsg = mapOrphanTransactions[hash] = new CDataStream(vMsg);
+   mapOrphanTransactions[hash] = tx;
     // 当前交易对应的输入对应的交易hash
-    foreach(const CTxIn& txin, tx.m_vTxIn)
-        mapOrphanTransactionsByPrev.insert(make_pair(txin.m_cPrevOut.m_u256Hash, pvMsg));
+    foreach(const CTxIn& txin, tx->m_vTxIn)
+        mapOrphanTransactionsByPrev.insert(make_pair(txin.m_cPrevOut.m_u256Hash, tx));
 }
 // 删除对应的孤儿交易
 void WalletServ::EraseOrphanTx(uint256 hash)
 {
     if (!mapOrphanTransactions.count(hash))
         return;
-    const CDataStream* pvMsg = mapOrphanTransactions[hash];
-    CTransaction tx;
-    CDataStream(*pvMsg) >> tx;
-    foreach(const CTxIn& txin, tx.m_vTxIn)
+    const CTransaction* tx = mapOrphanTransactions[hash];
+
+    foreach(const CTxIn& txin, tx->m_vTxIn)
     {
-        for (multimap<uint256, CDataStream*>::iterator mi = mapOrphanTransactionsByPrev.lower_bound(txin.m_cPrevOut.m_u256Hash);
+        for (multimap<uint256, CTransaction*>::iterator mi = mapOrphanTransactionsByPrev.lower_bound(txin.m_cPrevOut.m_u256Hash);
              mi != mapOrphanTransactionsByPrev.upper_bound(txin.m_cPrevOut.m_u256Hash);)
         {
-            if ((*mi).second == pvMsg)
+            if ((*mi).second == tx)
                 mapOrphanTransactionsByPrev.erase(mi++);
             else
                 mi++;
         }
     }
-    delete pvMsg;
+    delete tx;
     mapOrphanTransactions.erase(hash);
 }
 

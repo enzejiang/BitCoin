@@ -27,13 +27,14 @@
 #include "DAO/CWalletDB.h"
 #include "WalletService/CWalletTx.h"
 #include "WalletService/WalletServ.h"
+#include "CommonBase/ProtocSerialize.h"
+#include "CommonBase/market.h"
+#include "ProtocSrc/Message.pb.h"
 #include "NetWorkServ.h"
+#include "ZMQNode.h"
+#include "zhelpers.h"
+#include <thread>
 using namespace Enze;
-
-void* ThreadMessageHandler(void* parg);
-void* ThreadSocketHandler(void* parg);
-void* ThreadOpenConnections(void* parg);
-extern vector<pthread_t> gThreadList;
 
 //
 // Global state variables
@@ -65,48 +66,7 @@ bool NetWorkServ::StartNode()
                              m_nLocalServices);
 
     printf("m_cAddrLocalHost = %s\n", m_cAddrLocalHost.ToString().c_str());
-
-    // Create socket for listening for incoming connections
-    SOCKET hListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (hListenSocket == INVALID_SOCKET)
-    {
-        strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %d)", errno);
-        printf("%s\n", strError.c_str());
-        return false;
-    }
-
-    // Set to nonblocking, incoming connections will also inherit this
-    int flag = 0;
-    flag = fcntl(hListenSocket, F_GETFL, NULL);
-    fcntl(hListenSocket, F_SETFL, flag|O_NONBLOCK);
-
-    // Reuse Addr
-    int opt = 1;
-    socklen_t opt_len = sizeof(opt);
-    setsockopt(hListenSocket, SOL_SOCKET, SO_REUSEADDR, &opt, opt_len);
-    // The sockaddr_in structure specifies the address family,
-    // IP address, and port for the socket that is being bound
-    int nRetryLimit = 15;
-    struct sockaddr_in sockaddr = m_cAddrLocalHost.GetSockAddr();
-    if (bind(hListenSocket, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) == SOCKET_ERROR)
-    {
-        int nErr = errno;
-        if (nErr == EADDRINUSE)
-            strError = strprintf("Error: Unable to bind to port %s on this computer. The program is probably already running.", m_cAddrLocalHost.ToString().c_str());
-        else
-            strError = strprintf("Error: Unable to bind to port %s on this computer (bind returned error %d)", m_cAddrLocalHost.ToString().c_str(), nErr);
-        printf("%s\n", strError.c_str());
-        return false;
-    }
-    printf("bound to m_cAddrLocalHost = %s\n\n", m_cAddrLocalHost.ToString().c_str());
-
-    // Listen for incoming connections
-    if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR)
-    {
-        strError = strprintf("Error: Listening for incoming connections failed (listen returned error %d)", errno);
-        printf("%s\n", strError.c_str());
-        return false;
-    }
+    
     CAddress& addrIncoming = WalletServ::getInstance()->addrIncoming;
     // Get our external IP address for incoming connections
     if (addrIncoming.ip)
@@ -117,6 +77,7 @@ bool NetWorkServ::StartNode()
         //CWalletDB().WriteSetting("addrIncoming", addrIncoming);
     }
 
+    m_strIdentity = "tcp://"+m_cAddrLocalHost.ToString();
     /*IRC是Internet Relay Chat 的英文缩写，中文一般称为互联网中继聊天。
 	它是由芬兰人Jarkko Oikarinen于1988年首创的一种网络聊天协议。
 	经过十年的发展，目前世界上有超过60个国家提供了IRC的服务。IRC的工作原理非常简单，
@@ -128,7 +89,6 @@ bool NetWorkServ::StartNode()
 	通过服务器中继与其他连接到这一服务器上的用户交流，
 	所以IRC的中文名为“因特网中继聊天”。
 	*/
-    pthread_t pid = 0;
 #if 0
     // Get addresses from IRC and advertise ours
     if (pthread_create(&pid, NULL, ThreadIRCSeed, NULL) == -1)
@@ -139,30 +99,22 @@ bool NetWorkServ::StartNode()
     //
     // Start threads
     //
+     printf("start Node\n");
     
-    if (pthread_create(&pid, NULL, ThreadSocketHandler, (void*)new SOCKET(hListenSocket)) == -1)
-    {
-        strError = "Error: pthread_create(ThreadSocketHandler) failed";
-        printf("%s\n", strError.c_str());
-        return false;
-    }
-    gThreadList.push_back(pid);
+   // std::thread t1(ThreadSocketHandler);
+    std::thread t1(&NetWorkServ::SocketHandler, this);
+    t1.detach();
     
-    if (pthread_create(&pid, NULL, ThreadMessageHandler, NULL) == -1)
-    {
-        strError = "Error: pthread_create(ThreadMessageHandler) failed";
-        printf("%s\n", strError.c_str());
-        return false;
-    } 
-    gThreadList.push_back(pid);
+   // std::thread t2(ThreadMessageHandler);
+    std::thread t2(&NetWorkServ::MessageHandler, this);
+    t2.detach();
     
-    if (pthread_create(&pid, NULL, ThreadOpenConnections, NULL) == -1)
-    {
-        strError = "Error: pthread_create(ThreadOpenConnections) failed";
-        printf("%s\n", strError.c_str());
-        return false;
-    }
-    gThreadList.push_back(pid);
+    std::thread t3(&NetWorkServ::OpenConnections, this);
+    t3.detach();
+    
+    std::thread t4(&NetWorkServ::MessageRecv, this);
+    t4.detach();
+    
     return true;
 }
 
@@ -193,319 +145,261 @@ bool NetWorkServ::StopNode()
 
 void NetWorkServ::CheckForShutdown(int n)
 {
+ //   printf("%s---%d\n", __FILE__, __LINE__);
+#if 0
     if (fShutdown)
     {
         if (n != -1)
             vfThreadRunning[n] = false;
         if (n == 0)
-            foreach(CNode* pnode, m_cNodeLst)
+            foreach(ZNode* pnode, m_cZNodeLst)
                 close(pnode->hSocket);
     }
+#endif 
 }
 
-// socket 处理，parag对应的是本地节点开启的监听socket
-void* ThreadSocketHandler(void* parg)
+
+void NetWorkServ::NodeSyncThread()
 {
-//  IMPLEMENT_RANDOMIZE_STACK(ThreadSocketHandler(parg));
-
-    loop
+    printf("%s---%d\n", __FILE__, __LINE__);
+    printf("NetWorkServ::NodeSyncThread--start\n");
+    void* worker = zmq_socket(m_cZmqCtx, ZMQ_ROUTER);
+    zmq_connect(worker, "inproc://backend.ipc");
+    while(1) 
     {
-        vfThreadRunning[0] = true;
-        //CheckForShutdown(0);
-        try
-        {
-            NetWorkServ::getInstance()->SocketHandler(parg);
+        char* brokerId = s_recv(worker);
+        char* repId  = s_recv(worker);
+        char*emp = s_recv(worker);
+        free(emp);
+        char*ReqType = s_recv(worker);
+        printf("Recv Data, brokerId[%s], repId[%s]\n", brokerId, repId);
+        printf("Recv Data, ReqType[%s]\n", ReqType);
+        if (0 == strcmp("ping", ReqType)) {;
+            s_sendmore(worker, brokerId);
+            s_sendmore(worker, repId);
+            s_send(worker, (char*)m_strIdentity.c_str()); 
+            printf("Recv Data, ReqType[%s]--rep\n", ReqType);
+#if 0
+            if (!FindNode(repId)) {
+                printf("Recv Data, ReqType not Find[%s]\n", repId);
+                ConnectNode(repId);
+            }
+#endif
         }
-        CATCH_PRINT_EXCEPTION("ThreadSocketHandler()")
-        vfThreadRunning[0] = false;
-        sleep(5000);
+        else {
+            char* pData = s_recv(worker);
+            ZNode *pNode = FindNode(repId);
+            if (!pNode) {
+                pNode = ConnectNode(repId);
+            }
+            if (!pNode) {
+                printf("NetWorkServ::NodeSyncThread--Node[%s] is not alive\n", repId);
+                free(pData);
+                continue;
+            }
+            string req = pData;
+            PB_MessageData *cProtoc = new PB_MessageData;
+            cProtoc->ParsePartialFromString(req);
+            pNode->AddRecvMessage(cProtoc);
+#if 0
+            if (PB_MessageData_Mesg_Kind_MK_Version == cProtoc->emsgkind()) {
+                printf("NetWorkServ::MessageRecv--recv Version[%d]\n", cProtoc->cversion().nversion());
+            }
+            cProtoc->Clear();
+            cProtoc->set_emsgkind(PB_MessageData_Mesg_Kind_MK_Reply);
+            cProtoc->set_hashreply("jyb");
+           // SeriaAddress(m_cAddrLocalHost, cProtoc.mu);
+            string strData;
+            cProtoc->SerializePartialToString(&strData);
+            s_sendmore(worker, brokerId);
+            s_sendmore(worker, repId);
+            s_sendmore(worker, (char*)m_strIdentity.c_str());
+            s_send(worker, (char*)strData.c_str());
+#endif
+        }
+        free(brokerId);
+        free(repId);
+        //free(ReqType);
+        free(ReqType);
+        sleep(1);
     }
+    
+
 }
+
+
+void NetWorkServ::MessageRecv()
+{
+    
+    void* backend = zmq_socket(m_cZmqCtx, ZMQ_DEALER);
+    zmq_setsockopt(backend, ZMQ_IDENTITY, m_strIdentity.c_str(), m_strIdentity.length());
+    zmq_bind(backend, "inproc://backend.ipc");
+    printf("NetWorkServ::MessageRecv--start\n");
+    void * frontend = zmq_socket(m_cZmqCtx, ZMQ_ROUTER);
+   // string ipAddr = "tcp://"+m_cAddrLocalHost.ToString();
+    printf("m_strIdentity [%s]\n", m_strIdentity.c_str());
+    zmq_setsockopt(frontend, ZMQ_IDENTITY, m_strIdentity.c_str(), m_strIdentity.length());
+    zmq_bind(frontend, m_strIdentity.c_str());
+   
+    std::thread t0(&NetWorkServ::NodeSyncThread, this);
+    t0.detach();
+    
+    std::thread t1(&NetWorkServ::NodeSyncThread, this);
+    t1.detach();
+
+    zmq_proxy(frontend, backend, NULL);
+}
+
 // socket 处理，parag对应的是本地节点开启的监听socket
-void NetWorkServ::SocketHandler(void* parg)
+void NetWorkServ::SocketHandler()
 {
     printf("ThreadSocketHandler started\n");
-    SOCKET hListenSocket = *(SOCKET*)parg; // 获得监听socket
-    list<CNode*> m_cNodeLstDisconnected;
-    int nPrevNodeCount = 0;
-
+    list<ZNode*> cZNodeLstDisconnected;
     loop
     {
-        // Disconnect nodes
+        // Disconnect duplicate connections 释放同一个ip重复链接对应的节点，可能是不同端口
+        map<unsigned int, ZNode*> mapFirst;
+        foreach(auto it, m_cZNodeLst)
         {
-            // Disconnect duplicate connections 释放同一个ip重复链接对应的节点，可能是不同端口
-            map<unsigned int, CNode*> mapFirst;
-            foreach(CNode* pnode, m_cNodeLst)
+            ZNode* pnode= it.second;
+            if (pnode->isDistconnect())
+                continue;
+            unsigned int ip = pnode->getAddr().ip;
+            // 本地主机ip地址对应的是0，所以所有的ip地址都应该大于这个ip
+            if (mapFirst.count(ip) && m_cAddrLocalHost.ip < ip)
             {
-                if (pnode->fDisconnect)
-                    continue;
-                unsigned int ip = pnode->addr.ip;
-				// 本地主机ip地址对应的是0，所以所有的ip地址都应该大于这个ip
-                if (mapFirst.count(ip) && m_cAddrLocalHost.ip < ip)
+                // In case two nodes connect to each other at once,
+                // the lower ip disconnects its outbound connection
+                ZNode* pnodeExtra = mapFirst[ip];
+
+                if (pnodeExtra->GetRefCount() > (pnodeExtra->isNetworkNode() ? 1 : 0))
+                    std::swap(pnodeExtra, pnode);
+
+                if (pnodeExtra->GetRefCount() <= (pnodeExtra->isNetworkNode() ? 1 : 0))
                 {
-                    // In case two nodes connect to each other at once,
-                    // the lower ip disconnects its outbound connection
-                    CNode* pnodeExtra = mapFirst[ip];
-
-                    if (pnodeExtra->GetRefCount() > (pnodeExtra->fNetworkNode ? 1 : 0))
-                        printf("error %s_%d\n", __FILE__, __LINE__);
-                        //swap(pnodeExtra, pnode);
-
-                    if (pnodeExtra->GetRefCount() <= (pnodeExtra->fNetworkNode ? 1 : 0))
+                    printf("(%d nodes) disconnecting duplicate: %s\n", m_cZNodeLst.size(), pnodeExtra->getAddr().ToString().c_str());
+                    if (pnodeExtra->isNetworkNode() && !pnode->isNetworkNode())
                     {
-                        printf("(%d nodes) disconnecting duplicate: %s\n", m_cNodeLst.size(), pnodeExtra->addr.ToString().c_str());
-                        if (pnodeExtra->fNetworkNode && !pnode->fNetworkNode)
-                        {
-                            pnode->AddRef();
-                            printf("error %s_%d\n", __FILE__, __LINE__);
-                            //swap(pnodeExtra->fNetworkNode, pnode->fNetworkNode);
-                            pnodeExtra->Release();
-                        }
-                        pnodeExtra->fDisconnect = true;
+                        pnode->AddRef();
+                        //printf("error %s_%d\n", __FILE__, __LINE__);
+                        bool bNode = pnode->isNetworkNode();
+                        bool bExtNode = pnodeExtra->isNetworkNode();
+                        pnode->setNetworkState(bExtNode);
+                        pnodeExtra->setNetworkState(bNode);
+                        pnodeExtra->Release();
                     }
-                }
-                mapFirst[ip] = pnode;
-            }
-			// 断开不使用的节点
-            // Disconnect unused nodes
-            vector<CNode*> m_cNodeLstCopy = m_cNodeLst;
-            foreach(CNode* pnode, m_cNodeLstCopy)
-            {
-				// 节点准备释放链接，并且对应的接收和发送缓存区都是空
-                if (pnode->ReadyToDisconnect() && pnode->vRecv.empty() && pnode->vSend.empty())
-                {
-					// 从节点列表中移除
-                    // remove from m_cNodeLst
-                    m_cNodeLst.erase(remove(m_cNodeLst.begin(), m_cNodeLst.end(), pnode), m_cNodeLst.end());
-                    pnode->Disconnect();
-
-					// 将对应准备释放的节点放在对应的节点释放链接池中，等待对应节点的所有引用释放
-                    // hold in disconnected pool until all refs are released
-                    pnode->nReleaseTime = max(pnode->nReleaseTime, GetTime() + 5 * 60); // 向后推迟5分钟
-                    if (pnode->fNetworkNode)
-                        pnode->Release();
-                    m_cNodeLstDisconnected.push_back(pnode);
+                    pnodeExtra->setNetworkState(true);
                 }
             }
-
-			// 删除端口的链接的节点：删除的条件是对应节点的引用小于等于0
-            // Delete disconnected nodes
-            list<CNode*> m_cNodeLstDisconnectedCopy = m_cNodeLstDisconnected;
-            foreach(CNode* pnode, m_cNodeLstDisconnectedCopy)
+            mapFirst[ip] = pnode;
+        }
+        // 断开不使用的节点
+        // Disconnect unused nodes
+        map<string, ZNode*> cZNodeLstCopy = m_cZNodeLst;
+        foreach(auto it, cZNodeLstCopy)
+        {
+            ZNode* pnode= it.second;
+            // 节点准备释放链接，并且对应的接收和发送缓存区都是空
+            if (pnode->ReadyToDisconnect() /*&& pnode->vRecv.empty() && pnode->vSend.empty()*/)
             {
-                // wait until threads are done using it
-                if (pnode->GetRefCount() <= 0)
-                {
-                    bool fDelete = false;
-       //             //TRY_CRITICAL_BLOCK(pnode->cs_vSend)
-       //              //TRY_CRITICAL_BLOCK(pnode->cs_vRecv)
-       //               //TRY_CRITICAL_BLOCK(pnode->cs_mapRequests)
-       //                //TRY_CRITICAL_BLOCK(pnode->cs_inventory)
-                        fDelete = true;
-                    if (fDelete)
-                    {
-                        m_cNodeLstDisconnected.remove(pnode);
-                        delete pnode;
-                    }
-                }
+                // 从节点列表中移除
+                // remove from m_cZNodeLst
+                //m_cZNodeLst.erase(remove(m_cZNodeLst.begin(), m_cZNodeLst.end(), it), m_cZNodeLst.end());
+                printf("Remove Node[%s] From List\n",it.first.c_str());
+                m_cZNodeLst.erase(it.first);
+                pnode->Disconnect();
+
+                // 将对应准备释放的节点放在对应的节点释放链接池中，等待对应节点的所有引用释放
+                // hold in disconnected pool until all refs are released
+                pnode->setReleaseTime(max(pnode->getReleaseTime(), GetTime() + 5 * 60)); // 向后推迟5分钟
+                if (pnode->isNetworkNode())
+                    pnode->Release();
+                cZNodeLstDisconnected.push_back(pnode);
             }
         }
-        if (m_cNodeLst.size() != nPrevNodeCount)
+
+        // 删除端口的链接的节点：删除的条件是对应节点的引用小于等于0
+        // Delete disconnected nodes
+        // map<string, ZNode*> cZNodeLstDisconnectedCopy = cZNodeLstDisconnected;
+        foreach(ZNode* pnode, cZNodeLstDisconnected)
         {
-            nPrevNodeCount = m_cNodeLst.size(); // 记录前一次节点对应的数量
-            //MainFrameRepaint();
+            // wait until threads are done using it
+            if (pnode->GetRefCount() <= 0)
+            {
+                cZNodeLstDisconnected.remove(pnode);
+                delete pnode;
+            }
         }
 
+        if (m_cZNodeLst.size() == 0)
+        {
+           sleep(10);
+           continue;
+        }
+
+        zmq_pollitem_t *items = new zmq_pollitem_t[m_cZNodeLst.size()];
+        int iCnt = 0;
+        foreach(auto it, m_cZNodeLst) {
+            items[iCnt].socket = it.second->getPeerSock();
+            items[iCnt].fd = 0;
+            items[iCnt].events = ZMQ_POLLIN;
+            items[iCnt].revents = 0;
+        }
 
         // 找出哪一个socket有数据要发送
         // Find which sockets have data to receive
         //
-        struct timeval timeout;
-        timeout.tv_sec  = 0;
-        timeout.tv_usec = 50000; // frequency to poll pnode->vSend 咨询节点是否有数据要发送的频率
-
-        fd_set fdsetRecv; // 记录所有节点对应的socket句柄和监听socket句柄
-        fd_set fdsetSend; // 记录所有有待发送消息的节点对应的socket句柄
-        FD_ZERO(&fdsetRecv);
-        FD_ZERO(&fdsetSend);
-        SOCKET hSocketMax = 0;
-        FD_SET(hListenSocket, &fdsetRecv); // FD_SET将hListenSocket 放入fdsetRecv对应的数组的最后
-        hSocketMax = max(hSocketMax, hListenSocket);
-        //CRITICAL_BLOCK(cs_m_cNodeLst)
-        {
-            foreach(CNode* pnode, m_cNodeLst)
-            {
-                FD_SET(pnode->hSocket, &fdsetRecv);
-                hSocketMax = max(hSocketMax, pnode->hSocket); // 找出所有节点对应的socket的最大值，包括监听socket
-  //              TRY_CRITICAL_BLOCK(pnode->cs_vSend)
-                    if (!pnode->vSend.empty())
-                        FD_SET(pnode->hSocket, &fdsetSend); // FD_SET 字段设置
-            }
+        long timeout = 1000; //1s frequency to poll pnode->vSend 咨询节点是否有数据要发送的频率,
+	    
+        int retCnt = zmq_poll(items, m_cZNodeLst.size(), timeout);
+        if ( -1 == retCnt) { 
+            printf("%s---%d\n", __FILE__, __LINE__);
+            break;
         }
-
-        vfThreadRunning[0] = false;
-		// 函数参考：https://blog.csdn.net/rootusers/article/details/43604729
-		/*确定一个或多个套接口的状态，本函数用于确定一个或多个套接口的状态，对每一个套接口，调用者可查询它的可读性、可写性及错误状态信息，用fd_set结构来表示一组等待检查的套接口，在调用返回时，这个结构存有满足一定条件的套接口组的子集，并且select()返回满足条件的套接口的数目。
-			简单来说select用来填充一组可用的socket句柄，当满足下列之一条件时：
-			1.可以读取的sockets。当这些socket被返回时，在这些socket上执行recv/accept等操作不会产生阻塞;
-			2.可以写入的sockets。当这些socket被返回时，在这些socket上执行send等不会产生阻塞;
-			3.返回有错误的sockets。
-			select()的机制中提供一fd_set的数据结构，实际上市一long类型的数组，每一个数组元素都能与一打开的文件句柄(或者是其他的socket句柄，文件命名管道等)建立联系，建立联系的工作实际上由程序员完成，当调用select()的时候，由内核根据IO状态修改fd_set的内容，由此来通知执行了select()的进程那一socket或文件可读。
-		*/
-        int nSelect = select(hSocketMax + 1, &fdsetRecv, &fdsetSend, NULL, &timeout);
-        vfThreadRunning[0] = true;
-        CheckForShutdown(0);
-        if (nSelect == SOCKET_ERROR)
-        {
-            printf("select failed: %m\n");
-            for (int i = 0; i <= hSocketMax; i++)
-            {
-                FD_SET(i, &fdsetRecv); // 所有的值设置一遍
-                FD_SET(i, &fdsetSend);
-            }
-            sleep(timeout.tv_usec/1000);
-        }
+        
 		// 随机增加种子：性能计数
         RandAddSeed();
-
-        //// debug print
-    /*
-        foreach(CNode* pnode, m_cNodeLst)
-        {
-            printf("vRecv = %-5d ", pnode->vRecv.size());
-            printf("vSend = %-5d    ", pnode->vSend.size());
-        }
-        printf("\n");
-    */
-        // 如果fdsetRecv中有监听socket，则接收改监听socket对应的链接请求，并将链接请求设置为新的节点
-        // Accept new connections
-        // 判断发送缓冲区中是否有对应的socket，如果有则接收新的交易
-        if (FD_ISSET(hListenSocket, &fdsetRecv))
-        {
-            struct sockaddr_in sockaddr;
-            socklen_t len = sizeof(sockaddr);
-            SOCKET hSocket = accept(hListenSocket, (struct sockaddr*)&sockaddr, &len);
-            CAddress addr(sockaddr);
-            if (hSocket == INVALID_SOCKET)
-            {
-                //if (errno != EWOULDBLOCK)
-                  if (errno == EWOULDBLOCK)
-                    printf("ERROR ThreadSocketHandler accept failed: %m\n");
-            }
-            else
-            {
-                printf("accepted connection from %s\n", addr.ToString().c_str());
-                CNode* pnode = new CNode(hSocket, addr, true); // 有新的socket链接，则新建对应的节点，并将节点在加入本地节点列表中
-                pnode->AddRef();
-                m_cNodeLst.push_back(pnode);
-            }
-        }
-
-
         // 对每一个socket进行服务处理
         // Service each socket
         //
-        vector<CNode*> m_cNodeLstCopy;
-        m_cNodeLstCopy = m_cNodeLst;
-        foreach(CNode* pnode, m_cNodeLstCopy)
-        {
-            CheckForShutdown(0);
-            SOCKET hSocket = pnode->hSocket; // 获取每一个节点对应的socket
-
-            // 从节点对应的socket中读取对应的数据，将数据放入节点的接收缓冲区中
-            // Receive
-            //
-            if (FD_ISSET(hSocket, &fdsetRecv))
-            {
-                printf("error %s_%d\n", __FILE__, __LINE__);
-#if 0
-                CDataStream& vRecv = pnode->vRecv;
-                unsigned int nPos = vRecv.size();
-
-                const unsigned int nBufSize = 0x10000;
-                vRecv.resize(nPos + nBufSize);// 调整接收缓冲区的大小
-                int nBytes = recv(hSocket, &vRecv[nPos], nBufSize, MSG_DONTWAIT);// 从socket中接收对应的数据
-                vRecv.resize(nPos + max(nBytes, 0));
-                if (nBytes == 0)
-                {
-                    // socket closed gracefully （socket优雅的关闭）
-                    if (!pnode->fDisconnect)
-                        printf("recv: socket closed\n");
-                    pnode->fDisconnect = true;
-                }
-                else if (nBytes < 0)
-                {
-                    // socket error
-                    int nErr = errno;
-                    if (nErr != EWOULDBLOCK && nErr != EAGAIN && nErr != EINTR && nErr != EINPROGRESS)
-                    {
-                        if (!pnode->fDisconnect)
-                            printf("recv failed: %d\n", nErr);
-                        pnode->fDisconnect = true;
+        if (0 != retCnt) {
+            for (int i = 0; i < m_cZNodeLst.size(); ++i) {
+                if (items[i].revents & ZMQ_POLLIN) {
+                    //zmq::socket_t* pSock = items[i].socket;
+                  //  string emp = s_recv(items[i].socket);
+                    string identity = s_recv(items[i].socket);
+                    auto it = m_cZNodeLst.find(identity);
+                    if (it != m_cZNodeLst.end()) {
+                        printf("[%s] Start recv\n", identity.c_str());
+                        it->second->Recv();
+                    }else {
+                       printf("%s---%d---%s,error[Node %s was not find]\n", __FILE__, __LINE__, __func__, identity.c_str());
+                       foreach (auto it, m_cZNodeLst) {
+                           printf("Node id [%s]\n", it.first.c_str());
+                       }
                     }
                 }
-#endif
             }
-
+        }
+        else {
+            // No Data Come in ,we will send all data to peer node
             // 将节点对应的发送缓冲中的内容发送出去
             // Send
-            //
-            if (FD_ISSET(hSocket, &fdsetSend))
-            {
-                printf("error %s_%d\n", __FILE__, __LINE__);
-#if 0
-                {
-                    CDataStream& vSend = pnode->vSend;
-                    if (!vSend.empty())
-                    {
-                        int nBytes = send(hSocket, &vSend[0], vSend.size(), 0); // 从节点对应的发送缓冲区中发送数据出去
-                        if (nBytes > 0)
-                        {
-                            vSend.erase(vSend.begin(), vSend.begin() + nBytes);// 从发送缓冲区中移除发送过的内容
-                        }
-                        else if (nBytes == 0)
-                        {
-                            if (pnode->ReadyToDisconnect())
-                                pnode->vSend.clear();
-                        }
-                        else
-                        {
-                            printf("send error %d\n", nBytes);
-                            if (pnode->ReadyToDisconnect())
-                                pnode->vSend.clear();
-                        }
-                    }
-                }
-#endif
-            }
+            // deal send data
+            printf("NetWorkServ::SocketHandler start send\n");
 
+            foreach (auto it, m_cZNodeLst) {
+                it.second->Send();
+            }
         }
+        delete[] items;
         sleep(10);
     }
 }
 
 
-
-
-void* ThreadOpenConnections(void* parg)
-{
-//    IMPLEMENT_RANDOMIZE_STACK(ThreadOpenConnections(parg));
-
-    loop
-    {
-        vfThreadRunning[1] = true;
-        //CheckForShutdown(1);
-        try
-        {
-            NetWorkServ::getInstance()->OpenConnections(parg);
-        }
-        CATCH_PRINT_EXCEPTION("ThreadOpenConnections()")
-        vfThreadRunning[1] = false;
-        sleep(5000);
-    }
-}
 // 对于每一个打开节点的链接，进行节点之间信息通信，获得节点对应的最新信息，比如节点对应的知道地址进行交换等
-void NetWorkServ::OpenConnections(void* parg)
+void NetWorkServ::OpenConnections()
 {
     printf("ThreadOpenConnections started\n");
 
@@ -519,7 +413,7 @@ void NetWorkServ::OpenConnections(void* parg)
         // Wait
         vfThreadRunning[1] = false;
         sleep(5);
-        while (m_cNodeLst.size() >= nMaxConnections || m_cNodeLst.size() >= m_cMapAddresses.size())
+        while (m_cZNodeLst.size() >= nMaxConnections || m_cZNodeLst.size() >= m_cMapAddresses.size())
         {
             CheckForShutdown(1);
             sleep(50);
@@ -534,7 +428,7 @@ void NetWorkServ::OpenConnections(void* parg)
 #if 0
         if (mapIRCAddresses.empty())
             fIRCOnly = false;
-        else if (nTry++ < 30 && m_cNodeLst.size() < nMaxConnections/2)
+        else if (nTry++ < 30 && m_cZNodeLst.size() < nMaxConnections/2)
             fIRCOnly = true;
 #endif
         // Make a list of unique class C's
@@ -584,11 +478,11 @@ void NetWorkServ::OpenConnections(void* parg)
 
             // Organize all addresses in the class C by IP
             map<unsigned int, vector<CAddress> > mapIP;
-            int64 nDelay = ((30 * 60) << m_cNodeLst.size());
+            int64 nDelay = ((30 * 60) << m_cZNodeLst.size());
             if (!fIRCOnly)
             {
                 nDelay *= 2;
-                if (m_cNodeLst.size() >= 3)
+                if (m_cZNodeLst.size() >= 3)
                     nDelay *= 4;
                 
                 //if (!mapIRCAddresses.empty())
@@ -618,8 +512,8 @@ void NetWorkServ::OpenConnections(void* parg)
 
             // Choose a random IP in the class C
             map<unsigned int, vector<CAddress> >::iterator mi = mapIP.begin();
-			//boost::iterators::advance_adl_barrier::advance(mi, GetRand(mapIP.size())); // 将指针定位到随机位置
-			advance(mi, GetRand(mapIP.size())); // 将指针定位到随机位置
+            boost::iterators::advance_adl_barrier::advance(mi, GetRand(mapIP.size())); // 将指针定位到随机位置
+            //advance(mi, GetRand(mapIP.size())); // 将指针定位到随机位置
 
 			// 遍历同一个ip对应的所有不同端口
             // Once we've chosen an IP, we'll try every given port before moving on
@@ -632,12 +526,12 @@ void NetWorkServ::OpenConnections(void* parg)
                     continue;
 				// 链接对应地址信息的节点
                 vfThreadRunning[1] = false;
-                CNode* pnode = ConnectNode(addrConnect);
+                ZNode* pnode = ConnectNode(addrConnect);
                 vfThreadRunning[1] = true;
                 CheckForShutdown(1);
                 if (!pnode)
                     continue;
-                pnode->fNetworkNode = true;
+                pnode->setNetworkState(true);
 
 				// 如果本地主机地址能够进行路由，则需要广播我们的地址
                 if (m_cAddrLocalHost.IsRoutable())
@@ -645,21 +539,22 @@ void NetWorkServ::OpenConnections(void* parg)
                     // Advertise our address
                     vector<CAddress> vAddrToSend;
                     vAddrToSend.push_back(m_cAddrLocalHost);
-                    pnode->PushMessage("addr", vAddrToSend); // 将消息推送出去放入vsend中，在消息处理线程中进行处理
+                    pnode->SendAddr(vAddrToSend);// 将消息推送出去放入vsend中，在消息处理线程中进行处理
                 }
 
 				// 从创建的节点获得尽可能多的地址信息，发送消息，在消息处理线程中进行处理
                 // Get as many addresses as we can
-                pnode->PushMessage("getaddr");
+                pnode->SendGetAddrRequest();
 
                 ////// should the one on the receiving end do this too?
                 // Subscribe our local subscription list
 				// 新建的节点要订阅我们本地主机订阅的对应通断
+#if 0
                 const unsigned int nHops = 0;
                 for (unsigned int nChannel = 0; nChannel < m_pcNodeLocalHost->vfSubscribe.size(); nChannel++)
                     if (m_pcNodeLocalHost->vfSubscribe[nChannel])
                         pnode->PushMessage("subscribe", nChannel, nHops);
-
+#endif 
                 fSuccess = true;
                 break;
             }
@@ -668,31 +563,8 @@ void NetWorkServ::OpenConnections(void* parg)
 }
 
 
-
-
-
-
-
 // 消息处理线程
-void* ThreadMessageHandler(void* parg)
-{
- //   IMPLEMENT_RANDOMIZE_STACK(ThreadMessageHandler(parg));
-
-    loop
-    {
-        //vfThreadRunning[2] = true;
-        //CheckForShutdown(2);
-        try
-        {
-            NetWorkServ::getInstance()->MessageHandler(parg);
-        }
-        CATCH_PRINT_EXCEPTION("ThreadMessageHandler()")
-        //vfThreadRunning[2] = false;
-        sleep(5000);
-    }
-}
-// 消息处理线程
-void NetWorkServ::MessageHandler(void* parg)
+void NetWorkServ::MessageHandler()
 {
     printf("ThreadMessageHandler started\n");
     //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
@@ -700,12 +572,11 @@ void NetWorkServ::MessageHandler(void* parg)
     {
 		// 轮询链接的节点用于消息处理
         // Poll the connected nodes for messages
-        vector<CNode*> m_cNodeLstCopy;
-        m_cNodeLstCopy = m_cNodeLst;
+        map<string, ZNode*>cNodeLstCopy = m_cZNodeLst;
 		// 对每一个节点进行消息处理：发送消息和接收消息
-        foreach(CNode* pnode, m_cNodeLstCopy)
+        foreach(auto it, cNodeLstCopy)
         {
-
+            ZNode* pnode = it.second;
             pnode->AddRef();
 
             // Receive messages
@@ -718,10 +589,7 @@ void NetWorkServ::MessageHandler(void* parg)
         }
 
         // Wait and allow messages to bunch up
-        vfThreadRunning[2] = false;
         sleep(10);
-        vfThreadRunning[2] = true;
-        CheckForShutdown(2);
     }
 }
 

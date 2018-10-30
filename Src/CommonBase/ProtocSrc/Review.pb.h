@@ -197,30 +197,6 @@ class Review : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   ::google::protobuf::Map< ::std::string, ::std::string >*
       mutable_mapvalue();
 
-  // repeated uint32 vchPubKeyFrom = 4;
-  int vchpubkeyfrom_size() const;
-  void clear_vchpubkeyfrom();
-  static const int kVchPubKeyFromFieldNumber = 4;
-  ::google::protobuf::uint32 vchpubkeyfrom(int index) const;
-  void set_vchpubkeyfrom(int index, ::google::protobuf::uint32 value);
-  void add_vchpubkeyfrom(::google::protobuf::uint32 value);
-  const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-      vchpubkeyfrom() const;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-      mutable_vchpubkeyfrom();
-
-  // repeated uint32 vchSig = 5;
-  int vchsig_size() const;
-  void clear_vchsig();
-  static const int kVchSigFieldNumber = 5;
-  ::google::protobuf::uint32 vchsig(int index) const;
-  void set_vchsig(int index, ::google::protobuf::uint32 value);
-  void add_vchsig(::google::protobuf::uint32 value);
-  const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-      vchsig() const;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-      mutable_vchsig();
-
   // string hashTo = 2;
   void clear_hashto();
   static const int kHashToFieldNumber = 2;
@@ -234,6 +210,34 @@ class Review : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   ::std::string* mutable_hashto();
   ::std::string* release_hashto();
   void set_allocated_hashto(::std::string* hashto);
+
+  // string vchPubKeyFrom = 4;
+  void clear_vchpubkeyfrom();
+  static const int kVchPubKeyFromFieldNumber = 4;
+  const ::std::string& vchpubkeyfrom() const;
+  void set_vchpubkeyfrom(const ::std::string& value);
+  #if LANG_CXX11
+  void set_vchpubkeyfrom(::std::string&& value);
+  #endif
+  void set_vchpubkeyfrom(const char* value);
+  void set_vchpubkeyfrom(const char* value, size_t size);
+  ::std::string* mutable_vchpubkeyfrom();
+  ::std::string* release_vchpubkeyfrom();
+  void set_allocated_vchpubkeyfrom(::std::string* vchpubkeyfrom);
+
+  // string vchSig = 5;
+  void clear_vchsig();
+  static const int kVchSigFieldNumber = 5;
+  const ::std::string& vchsig() const;
+  void set_vchsig(const ::std::string& value);
+  #if LANG_CXX11
+  void set_vchsig(::std::string&& value);
+  #endif
+  void set_vchsig(const char* value);
+  void set_vchsig(const char* value, size_t size);
+  ::std::string* mutable_vchsig();
+  ::std::string* release_vchsig();
+  void set_allocated_vchsig(::std::string* vchsig);
 
   // int32 nVersion = 1;
   void clear_nversion();
@@ -264,11 +268,9 @@ class Review : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
       0 > mapvalue_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > vchpubkeyfrom_;
-  mutable std::atomic<int> _vchpubkeyfrom_cached_byte_size_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > vchsig_;
-  mutable std::atomic<int> _vchsig_cached_byte_size_;
   ::google::protobuf::internal::ArenaStringPtr hashto_;
+  ::google::protobuf::internal::ArenaStringPtr vchpubkeyfrom_;
+  ::google::protobuf::internal::ArenaStringPtr vchsig_;
   ::google::protobuf::int32 nversion_;
   ::google::protobuf::uint32 ntime_;
   ::google::protobuf::int32 natoms_;
@@ -373,64 +375,110 @@ Review::mutable_mapvalue() {
   return mapvalue_.MutableMap();
 }
 
-// repeated uint32 vchPubKeyFrom = 4;
-inline int Review::vchpubkeyfrom_size() const {
-  return vchpubkeyfrom_.size();
-}
+// string vchPubKeyFrom = 4;
 inline void Review::clear_vchpubkeyfrom() {
-  vchpubkeyfrom_.Clear();
+  vchpubkeyfrom_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::google::protobuf::uint32 Review::vchpubkeyfrom(int index) const {
+inline const ::std::string& Review::vchpubkeyfrom() const {
   // @@protoc_insertion_point(field_get:Enze.Review.vchPubKeyFrom)
-  return vchpubkeyfrom_.Get(index);
+  return vchpubkeyfrom_.GetNoArena();
 }
-inline void Review::set_vchpubkeyfrom(int index, ::google::protobuf::uint32 value) {
-  vchpubkeyfrom_.Set(index, value);
+inline void Review::set_vchpubkeyfrom(const ::std::string& value) {
+  
+  vchpubkeyfrom_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
   // @@protoc_insertion_point(field_set:Enze.Review.vchPubKeyFrom)
 }
-inline void Review::add_vchpubkeyfrom(::google::protobuf::uint32 value) {
-  vchpubkeyfrom_.Add(value);
-  // @@protoc_insertion_point(field_add:Enze.Review.vchPubKeyFrom)
+#if LANG_CXX11
+inline void Review::set_vchpubkeyfrom(::std::string&& value) {
+  
+  vchpubkeyfrom_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:Enze.Review.vchPubKeyFrom)
 }
-inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-Review::vchpubkeyfrom() const {
-  // @@protoc_insertion_point(field_list:Enze.Review.vchPubKeyFrom)
-  return vchpubkeyfrom_;
+#endif
+inline void Review::set_vchpubkeyfrom(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  vchpubkeyfrom_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:Enze.Review.vchPubKeyFrom)
 }
-inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-Review::mutable_vchpubkeyfrom() {
-  // @@protoc_insertion_point(field_mutable_list:Enze.Review.vchPubKeyFrom)
-  return &vchpubkeyfrom_;
+inline void Review::set_vchpubkeyfrom(const char* value, size_t size) {
+  
+  vchpubkeyfrom_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:Enze.Review.vchPubKeyFrom)
+}
+inline ::std::string* Review::mutable_vchpubkeyfrom() {
+  
+  // @@protoc_insertion_point(field_mutable:Enze.Review.vchPubKeyFrom)
+  return vchpubkeyfrom_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* Review::release_vchpubkeyfrom() {
+  // @@protoc_insertion_point(field_release:Enze.Review.vchPubKeyFrom)
+  
+  return vchpubkeyfrom_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void Review::set_allocated_vchpubkeyfrom(::std::string* vchpubkeyfrom) {
+  if (vchpubkeyfrom != NULL) {
+    
+  } else {
+    
+  }
+  vchpubkeyfrom_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), vchpubkeyfrom);
+  // @@protoc_insertion_point(field_set_allocated:Enze.Review.vchPubKeyFrom)
 }
 
-// repeated uint32 vchSig = 5;
-inline int Review::vchsig_size() const {
-  return vchsig_.size();
-}
+// string vchSig = 5;
 inline void Review::clear_vchsig() {
-  vchsig_.Clear();
+  vchsig_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::google::protobuf::uint32 Review::vchsig(int index) const {
+inline const ::std::string& Review::vchsig() const {
   // @@protoc_insertion_point(field_get:Enze.Review.vchSig)
-  return vchsig_.Get(index);
+  return vchsig_.GetNoArena();
 }
-inline void Review::set_vchsig(int index, ::google::protobuf::uint32 value) {
-  vchsig_.Set(index, value);
+inline void Review::set_vchsig(const ::std::string& value) {
+  
+  vchsig_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
   // @@protoc_insertion_point(field_set:Enze.Review.vchSig)
 }
-inline void Review::add_vchsig(::google::protobuf::uint32 value) {
-  vchsig_.Add(value);
-  // @@protoc_insertion_point(field_add:Enze.Review.vchSig)
+#if LANG_CXX11
+inline void Review::set_vchsig(::std::string&& value) {
+  
+  vchsig_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:Enze.Review.vchSig)
 }
-inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-Review::vchsig() const {
-  // @@protoc_insertion_point(field_list:Enze.Review.vchSig)
-  return vchsig_;
+#endif
+inline void Review::set_vchsig(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  vchsig_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:Enze.Review.vchSig)
 }
-inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-Review::mutable_vchsig() {
-  // @@protoc_insertion_point(field_mutable_list:Enze.Review.vchSig)
-  return &vchsig_;
+inline void Review::set_vchsig(const char* value, size_t size) {
+  
+  vchsig_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:Enze.Review.vchSig)
+}
+inline ::std::string* Review::mutable_vchsig() {
+  
+  // @@protoc_insertion_point(field_mutable:Enze.Review.vchSig)
+  return vchsig_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* Review::release_vchsig() {
+  // @@protoc_insertion_point(field_release:Enze.Review.vchSig)
+  
+  return vchsig_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void Review::set_allocated_vchsig(::std::string* vchsig) {
+  if (vchsig != NULL) {
+    
+  } else {
+    
+  }
+  vchsig_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), vchsig);
+  // @@protoc_insertion_point(field_set_allocated:Enze.Review.vchSig)
 }
 
 // uint32 nTime = 6;

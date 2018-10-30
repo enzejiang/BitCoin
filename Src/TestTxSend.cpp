@@ -113,7 +113,7 @@ void TestTxSend::StartTransfer()
     // We may have connected already for product details
     if (!Status("Connecting..."))
         return;
-    CNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
+    ZNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
     if (!pnode)
     {
         error("Unable to connect");
@@ -123,7 +123,7 @@ void TestTxSend::StartTransfer()
     // Send order to seller, with response going to OnReply2 via event handler
     if (!Status("Requesting public key..."))
         return;
-    pnode->PushRequest("checkorder", wtx, SendingDialogOnReply2, this);
+ //   pnode->PushRequest("checkorder", wtx, SendingDialogOnReply2, this);
 }
 
 void SendingDialogOnReply2(void* parg, CDataStream& vRecv)
@@ -159,7 +159,7 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
     }
 
     // Should already be connected
-    CNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
+    ZNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
     if (!pnode)
     {
         error("Lost connection");
@@ -198,7 +198,7 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
         }
 
         // Send payment tx to seller, with response going to OnReply3 via event handler
-        pnode->PushRequest("submitorder", wtx, SendingDialogOnReply3, this);
+//        pnode->PushRequest("submitorder", wtx, SendingDialogOnReply3, this);
 
         // Accept and broadcast transaction
         if (!wtx.AcceptTransaction())

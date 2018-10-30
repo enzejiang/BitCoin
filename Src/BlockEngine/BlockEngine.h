@@ -35,7 +35,7 @@ class CCoinBase;
 class CBlock;
 class CBlockIndex;
 class CKeyItem;
-class CNode;
+class ZNode;
 class CScript;
 class CAddress;
 class CTransaction;
@@ -52,7 +52,7 @@ public:
     uint256 GetOrphanRoot(const CBlock* pblock);
     unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast);
     bool Reorganize(CBlockIndex* pindexNew);
-    bool ProcessBlock(CNode* pfrom, CBlock* pblock);
+    bool ProcessBlock(ZNode* pfrom, CBlock* pblock);
     string GetAppDir();
     bool CheckDiskSpace(int64 nAdditionalBytes=0);
     FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
@@ -62,7 +62,7 @@ public:
     void BlockSHA256(const void* pin, unsigned int nBlocks, void* pout);
     bool BitcoinMiner();
     
-    const map<uint256, CBlockIndex*>&getMapBlockIndex()
+    map<uint256, CBlockIndex*>&getMapBlockIndex()
     {
         return mapBlockIndex;
     }

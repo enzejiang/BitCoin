@@ -309,10 +309,10 @@ void CNode::Disconnect()
 
     // All of a nodes broadcasts and subscriptions are automatically torn down
     // when it goes down, so a node has to stay up to keep its broadcast going.
-
+#if 0
     for (map<uint256, CProduct>::iterator mi = mapProducts.begin(); mi != mapProducts.end();)
         Enze::NetWorkServ::getInstance()->AdvertRemoveSource(this, MSG_PRODUCT, 0, (*(mi++)).second);
-#if 0
+
     // Cancel subscriptions
     for (unsigned int nChannel = 0; nChannel < vfSubscribe.size(); nChannel++)
         if (vfSubscribe[nChannel])

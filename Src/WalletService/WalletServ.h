@@ -40,6 +40,7 @@ namespace Enze
     class uint256;
     class uint160;
     class CInv;
+    class Transaction;
     class WalletServ
     {
         public:
@@ -52,7 +53,7 @@ namespace Enze
             bool AddToWallet(const CWalletTx& wtxIn);
             bool AddToWalletIfMine(const CTransaction& tx, const CBlock* pblock);
             bool EraseFromWallet(uint256 hash);
-            void AddOrphanTx(const CDataStream& vMsg);
+            void AddOrphanTx(const Transaction& pbTx);
             void EraseOrphanTx(uint256 hash);
             void ReacceptWalletTransactions();
             void RelayWalletTransactions();
@@ -75,8 +76,8 @@ namespace Enze
             int64 nTransactionFee;
             CAddress addrIncoming;
             map<string, string> mapAddressBook; // 地址和名称的映射，其中key为地址，value为名称
-            map<uint256, CDataStream*> mapOrphanTransactions;// 孤儿交易，其中key对应的交易hash值
-            multimap<uint256, CDataStream*> mapOrphanTransactionsByPrev; // 其中key为value交易对应输入的交易的hash值，value为当前交易
+            map<uint256, CTransaction*> mapOrphanTransactions;// 孤儿交易，其中key对应的交易hash值
+            multimap<uint256, CTransaction*> mapOrphanTransactionsByPrev; // 其中key为value交易对应输入的交易的hash值，value为当前交易
             
         private:
             WalletServ();

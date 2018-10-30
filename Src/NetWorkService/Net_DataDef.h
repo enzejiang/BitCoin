@@ -30,6 +30,7 @@ const int INVALID_SOCKET = -1;
 const int SOCKET_ERROR = -1;
 // Ĭ�϶˿ں�
 const unsigned short DEFAULT_PORT = htons(8333);
+const unsigned short SYNC_PORT = htons(8334);
 const unsigned int PUBLISH_HOPS = 5;
 
 const unsigned char pchIPv4[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff };

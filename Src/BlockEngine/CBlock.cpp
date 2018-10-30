@@ -21,6 +21,7 @@
 #include "BlockEngine/CDiskBlockIndex.h"
 #include "BlockEngine/CDiskTxPos.h"
 #include "NetWorkService/NetWorkServ.h"
+#include "NetWorkService/CInv.h"
 #include "WalletService/CTxIndex.h"
 #include "WalletService/WalletServ.h"
 #include "DAO/DaoServ.h"
@@ -201,7 +202,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
         BlockEngine::getInstance()->setBestHeight(pindexNew->m_nCurHeight);
         printf("CBlock::AddToBlockIndex--- serail----888-333\n");
         WalletServ::getInstance()->nTransactionsUpdated++;
-        printf("AddToBlockIndex: new best=%s  height=%d\n", hashBestChain.ToString().substr(0,14).c_str(), nBestHeight);
+        printf("AddToBlockIndex: new best=%s  height=%d\n", hashBestChain.ToString().substr(0,14).c_str(), BlockEngine::getInstance()->getBestHeight());
     }
 
       printf("CBlock::AddToBlockIndex--- serail----99999999\n");

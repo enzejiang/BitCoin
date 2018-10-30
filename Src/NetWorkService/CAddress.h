@@ -166,7 +166,10 @@ public:
         return strprintf("%u.%u.%u.%u:%u", GetByte(3), GetByte(2), GetByte(1), GetByte(0), ntohs(port));
         //return strprintf("%u.%u.%u.%u", GetByte(3), GetByte(2), GetByte(1), GetByte(0));
     }
-
+    string getSyncIPPort()
+    {
+        return strprintf("%u.%u.%u.%u:%u", GetByte(3), GetByte(2), GetByte(1), GetByte(0), ntohs(SYNC_PORT));
+    }
     void print() const
     {
         printf("CAddress(%s)\n", ToString().c_str());

@@ -108,7 +108,7 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   "\n\014Review.proto\022\004Enze\"\317\001\n\006Review\022\020\n\010nVers"
   "ion\030\001 \001(\005\022\016\n\006hashTo\030\002 \001(\t\022,\n\010mapValue\030\003 "
   "\003(\0132\032.Enze.Review.MapValueEntry\022\025\n\rvchPu"
-  "bKeyFrom\030\004 \003(\r\022\016\n\006vchSig\030\005 \003(\r\022\r\n\005nTime\030"
+  "bKeyFrom\030\004 \001(\t\022\016\n\006vchSig\030\005 \001(\t\022\r\n\005nTime\030"
   "\006 \001(\r\022\016\n\006nAtoms\030\007 \001(\005\032/\n\rMapValueEntry\022\013"
   "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001b\006proto3"
 ,
@@ -192,14 +192,20 @@ Review::Review()
 }
 Review::Review(const Review& from)
   : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
-      vchpubkeyfrom_(from.vchpubkeyfrom_),
-      vchsig_(from.vchsig_) {
+      _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   mapvalue_.MergeFrom(from.mapvalue_);
   hashto_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (from.hashto().size() > 0) {
     hashto_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.hashto_);
+  }
+  vchpubkeyfrom_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.vchpubkeyfrom().size() > 0) {
+    vchpubkeyfrom_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.vchpubkeyfrom_);
+  }
+  vchsig_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.vchsig().size() > 0) {
+    vchsig_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.vchsig_);
   }
   ::memcpy(&nversion_, &from.nversion_,
     static_cast<size_t>(reinterpret_cast<char*>(&natoms_) -
@@ -211,6 +217,8 @@ void Review::SharedCtor() {
   ::google::protobuf::internal::InitSCC(
       &scc_info_Review_Review_2eproto.base);
   hashto_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  vchpubkeyfrom_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  vchsig_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&nversion_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&natoms_) -
       reinterpret_cast<char*>(&nversion_)) + sizeof(natoms_));
@@ -223,6 +231,8 @@ Review::~Review() {
 
 void Review::SharedDtor() {
   hashto_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  vchpubkeyfrom_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  vchsig_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 void Review::SetCachedSize(int size) const {
@@ -241,9 +251,9 @@ void Review::Clear() {
   (void) cached_has_bits;
 
   mapvalue_.Clear();
-  vchpubkeyfrom_.Clear();
-  vchsig_.Clear();
   hashto_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  vchpubkeyfrom_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  vchsig_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&nversion_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&natoms_) -
       reinterpret_cast<char*>(&nversion_)) + sizeof(natoms_));
@@ -308,50 +318,36 @@ const char* Review::_InternalParse(const char* begin, const char* end, void* obj
         } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 26 && (ptr += 1));
         break;
       }
-      // repeated uint32 vchPubKeyFrom = 4;
+      // string vchPubKeyFrom = 4;
       case 4: {
-        if (static_cast<::google::protobuf::uint8>(tag) == 34) {
-          ptr = Varint::Parse32Inline(ptr, &size);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-          parser_till_end = ::google::protobuf::internal::PackedUInt32Parser;
-          object = msg->mutable_vchpubkeyfrom();
-          if (size > end - ptr) goto len_delim_till_end;
-          auto newend = ptr + size;
-          if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
-          break;
-        } else if (static_cast<::google::protobuf::uint8>(tag) != 32) goto handle_unusual;
-        do {
-          ::google::protobuf::uint64 val;
-          ptr = Varint::Parse64(ptr, &val);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-          ::google::protobuf::uint32 value = val;
-          msg->add_vchpubkeyfrom(value);
-          if (ptr >= end) break;
-        } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 32 && (ptr += 1));
+        if (static_cast<::google::protobuf::uint8>(tag) != 34) goto handle_unusual;
+        ptr = Varint::Parse32Inline(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("Enze.Review.vchPubKeyFrom");
+        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        ::std::string* str = msg->mutable_vchpubkeyfrom();
+        str->clear();
+        object = str;
+        if (size > end - ptr) goto len_delim_till_end;
+        auto newend = ptr + size;
+        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
         break;
       }
-      // repeated uint32 vchSig = 5;
+      // string vchSig = 5;
       case 5: {
-        if (static_cast<::google::protobuf::uint8>(tag) == 42) {
-          ptr = Varint::Parse32Inline(ptr, &size);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-          parser_till_end = ::google::protobuf::internal::PackedUInt32Parser;
-          object = msg->mutable_vchsig();
-          if (size > end - ptr) goto len_delim_till_end;
-          auto newend = ptr + size;
-          if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
-          break;
-        } else if (static_cast<::google::protobuf::uint8>(tag) != 40) goto handle_unusual;
-        do {
-          ::google::protobuf::uint64 val;
-          ptr = Varint::Parse64(ptr, &val);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-          ::google::protobuf::uint32 value = val;
-          msg->add_vchsig(value);
-          if (ptr >= end) break;
-        } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 40 && (ptr += 1));
+        if (static_cast<::google::protobuf::uint8>(tag) != 42) goto handle_unusual;
+        ptr = Varint::Parse32Inline(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("Enze.Review.vchSig");
+        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        ::std::string* str = msg->mutable_vchsig();
+        str->clear();
+        object = str;
+        if (size > end - ptr) goto len_delim_till_end;
+        auto newend = ptr + size;
+        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
         break;
       }
       // uint32 nTime = 6;
@@ -462,32 +458,30 @@ bool Review::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated uint32 vchPubKeyFrom = 4;
+      // string vchPubKeyFrom = 4;
       case 4: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (34 & 0xFF)) {
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, this->mutable_vchpubkeyfrom())));
-        } else if (static_cast< ::google::protobuf::uint8>(tag) == (32 & 0xFF)) {
-          DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 1, 34u, input, this->mutable_vchpubkeyfrom())));
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_vchpubkeyfrom()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->vchpubkeyfrom().data(), static_cast<int>(this->vchpubkeyfrom().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "Enze.Review.vchPubKeyFrom"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // repeated uint32 vchSig = 5;
+      // string vchSig = 5;
       case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (42 & 0xFF)) {
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, this->mutable_vchsig())));
-        } else if (static_cast< ::google::protobuf::uint8>(tag) == (40 & 0xFF)) {
-          DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 1, 42u, input, this->mutable_vchsig())));
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_vchsig()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->vchsig().data(), static_cast<int>(this->vchsig().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "Enze.Review.vchSig"));
         } else {
           goto handle_unusual;
         }
@@ -611,26 +605,24 @@ void Review::SerializeWithCachedSizes(
     }
   }
 
-  // repeated uint32 vchPubKeyFrom = 4;
-  if (this->vchpubkeyfrom_size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteTag(4, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(_vchpubkeyfrom_cached_byte_size_.load(
-        std::memory_order_relaxed));
-  }
-  for (int i = 0, n = this->vchpubkeyfrom_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32NoTag(
-      this->vchpubkeyfrom(i), output);
+  // string vchPubKeyFrom = 4;
+  if (this->vchpubkeyfrom().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->vchpubkeyfrom().data(), static_cast<int>(this->vchpubkeyfrom().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "Enze.Review.vchPubKeyFrom");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      4, this->vchpubkeyfrom(), output);
   }
 
-  // repeated uint32 vchSig = 5;
-  if (this->vchsig_size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteTag(5, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(_vchsig_cached_byte_size_.load(
-        std::memory_order_relaxed));
-  }
-  for (int i = 0, n = this->vchsig_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32NoTag(
-      this->vchsig(i), output);
+  // string vchSig = 5;
+  if (this->vchsig().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->vchsig().data(), static_cast<int>(this->vchsig().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "Enze.Review.vchSig");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      5, this->vchsig(), output);
   }
 
   // uint32 nTime = 6;
@@ -722,30 +714,26 @@ void Review::SerializeWithCachedSizes(
     }
   }
 
-  // repeated uint32 vchPubKeyFrom = 4;
-  if (this->vchpubkeyfrom_size() > 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
-      4,
-      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      target);
-    target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
-        _vchpubkeyfrom_cached_byte_size_.load(std::memory_order_relaxed),
-         target);
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteUInt32NoTagToArray(this->vchpubkeyfrom_, target);
+  // string vchPubKeyFrom = 4;
+  if (this->vchpubkeyfrom().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->vchpubkeyfrom().data(), static_cast<int>(this->vchpubkeyfrom().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "Enze.Review.vchPubKeyFrom");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        4, this->vchpubkeyfrom(), target);
   }
 
-  // repeated uint32 vchSig = 5;
-  if (this->vchsig_size() > 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
-      5,
-      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      target);
-    target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
-        _vchsig_cached_byte_size_.load(std::memory_order_relaxed),
-         target);
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteUInt32NoTagToArray(this->vchsig_, target);
+  // string vchSig = 5;
+  if (this->vchsig().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->vchsig().data(), static_cast<int>(this->vchsig().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "Enze.Review.vchSig");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        5, this->vchsig(), target);
   }
 
   // uint32 nTime = 6;
@@ -793,41 +781,25 @@ size_t Review::ByteSizeLong() const {
     }
   }
 
-  // repeated uint32 vchPubKeyFrom = 4;
-  {
-    size_t data_size = ::google::protobuf::internal::WireFormatLite::
-      UInt32Size(this->vchpubkeyfrom_);
-    if (data_size > 0) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-            static_cast<::google::protobuf::int32>(data_size));
-    }
-    int cached_size = ::google::protobuf::internal::ToCachedSize(data_size);
-    _vchpubkeyfrom_cached_byte_size_.store(cached_size,
-                                    std::memory_order_relaxed);
-    total_size += data_size;
-  }
-
-  // repeated uint32 vchSig = 5;
-  {
-    size_t data_size = ::google::protobuf::internal::WireFormatLite::
-      UInt32Size(this->vchsig_);
-    if (data_size > 0) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-            static_cast<::google::protobuf::int32>(data_size));
-    }
-    int cached_size = ::google::protobuf::internal::ToCachedSize(data_size);
-    _vchsig_cached_byte_size_.store(cached_size,
-                                    std::memory_order_relaxed);
-    total_size += data_size;
-  }
-
   // string hashTo = 2;
   if (this->hashto().size() > 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::StringSize(
         this->hashto());
+  }
+
+  // string vchPubKeyFrom = 4;
+  if (this->vchpubkeyfrom().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->vchpubkeyfrom());
+  }
+
+  // string vchSig = 5;
+  if (this->vchsig().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->vchsig());
   }
 
   // int32 nVersion = 1;
@@ -879,11 +851,17 @@ void Review::MergeFrom(const Review& from) {
   (void) cached_has_bits;
 
   mapvalue_.MergeFrom(from.mapvalue_);
-  vchpubkeyfrom_.MergeFrom(from.vchpubkeyfrom_);
-  vchsig_.MergeFrom(from.vchsig_);
   if (from.hashto().size() > 0) {
 
     hashto_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.hashto_);
+  }
+  if (from.vchpubkeyfrom().size() > 0) {
+
+    vchpubkeyfrom_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.vchpubkeyfrom_);
+  }
+  if (from.vchsig().size() > 0) {
+
+    vchsig_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.vchsig_);
   }
   if (from.nversion() != 0) {
     set_nversion(from.nversion());
@@ -922,9 +900,11 @@ void Review::InternalSwap(Review* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
   mapvalue_.Swap(&other->mapvalue_);
-  vchpubkeyfrom_.InternalSwap(&other->vchpubkeyfrom_);
-  vchsig_.InternalSwap(&other->vchsig_);
   hashto_.Swap(&other->hashto_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
+  vchpubkeyfrom_.Swap(&other->vchpubkeyfrom_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
+  vchsig_.Swap(&other->vchsig_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   swap(nversion_, other->nversion_);
   swap(ntime_, other->ntime_);

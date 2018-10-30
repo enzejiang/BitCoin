@@ -16,14 +16,17 @@
  * =====================================================================================
  */
 #include "NetWorkService/CAddress.h"
+#include "NetWorkService/CInv.h"
 #include "BlockEngine/CDiskTxPos.h"
 #include "BlockEngine/CDiskBlockIndex.h"
 #include "BlockEngine/CBlock.h"
+#include "BlockEngine/CBlockLocator.h"
 #include "WalletService/CTxIndex.h"
 #include "WalletService/CTxIn.h"
 #include "WalletService/CTxOut.h"
 #include "WalletService/CTransaction.h"
 #include "WalletService/CWalletTx.h"
+#include "CommonBase/market.h"
 #include "ProtocSrc/Address.pb.h"
 #include "ProtocSrc/DiskTxPos.pb.h"
 #include "ProtocSrc/DiskBlockIndex.pb.h"
@@ -33,6 +36,8 @@
 #include "ProtocSrc/Transaction.pb.h"
 #include "ProtocSrc/WalletTx.pb.h"
 #include "ProtocSrc/Block.pb.h"
+#include "ProtocSrc/Inventory.pb.h"
+#include "ProtocSrc/Review.pb.h"
 #include "ProtocSerialize.h"
 
 namespace Enze
@@ -99,7 +104,7 @@ bool SeriaTxIndex(const CTxIndex& txindex, TxIndex& cProtoc)
     
     for(int i=0;i <txindex.m_vSpent.size(); ++i)
     {
-        if (!Enze::SeriaDiskTxPos(txindex.m_vSpent[i], *cProtoc.mutable_vspent(i)))
+        if (!Enze::SeriaDiskTxPos(txindex.m_vSpent[i], *cProtoc.add_vspent()))
             return false;
     }
     
@@ -457,7 +462,78 @@ bool SeriaBlock(const CBlock& cSrcData, Block& cProtoc)
     return true;
 }
 
+bool UnSeriaInv(const Inventory& pbInv, CInv& cInv)
+{
+    cInv.type = pbInv.type();
+    cInv.hash.SetHex(pbInv.hash());
+    return true;
+}
+
+bool SeriaInv(const CInv&cInv, Inventory& pbInv)
+{
+    pbInv.set_type(cInv.type);
+    pbInv.set_hash(cInv.hash.GetHex());
+}
     
+bool UnSeriaLoctor(const GetBlocks_BlockLocator& pbLoctor,CBlockLocator& bkLocator)
+{
+    bkLocator.vHave.clear();
+    bkLocator.vHave.resize(pbLoctor.vhave_size());
+    foreach (auto it, pbLoctor.vhave()) {
+        bkLocator.vHave.push_back(uint256(it));
+    }
+    return true;
+}
+
+bool SeriaLoctor(const CBlockLocator&bkLocator, GetBlocks_BlockLocator& pbLoctor)
+{
+    pbLoctor.Clear();
+    for (int i = 0; i < bkLocator.vHave.size(); ++i)
+    {
+        pbLoctor.set_vhave(i, bkLocator.vHave[i].GetHex());
+    }
+    return true;
+}
+
+
+bool UnSeriaReview(const Review& pbReview, CReview& cReview)
+{
+    cReview.nVersion = pbReview.nversion();
+    cReview.nTime    = pbReview.ntime();
+    cReview.nAtoms   = pbReview.natoms();
+    cReview.hashTo.SetHex(pbReview.hashto());
+
+    cReview.mapValue.clear();
+    foreach(auto it, pbReview.mapvalue())
+        cReview.mapValue.insert(it);
+
+    cReview.vchPubKeyFrom.clear();
+    foreach(auto it, pbReview.vchpubkeyfrom())
+        cReview.vchPubKeyFrom.push_back(it);
+
+    cReview.vchSig.clear();
+    foreach(auto it, pbReview.vchsig())
+        cReview.vchSig.push_back(it);
+
+    return true;
+}
+
+bool SeriaReview(const CReview& cReview, Review& pbReview)
+{
+    pbReview.Clear();
+    pbReview.set_nversion(cReview.nVersion);
+    pbReview.set_natoms(cReview.nAtoms);
+    pbReview.set_ntime(cReview.nTime);
+    pbReview.set_hashto(cReview.hashTo.GetHex());
+    pbReview.set_vchpubkeyfrom(string(cReview.vchPubKeyFrom.begin(), cReview.vchPubKeyFrom.end()));
+    pbReview.set_vchsig(string(cReview.vchSig.begin(), cReview.vchSig.end()));
+
+    ::google::protobuf::Map< ::std::string, ::std::string >* pMapValue = pbReview.mutable_mapvalue();
+    foreach(auto it, cReview.mapValue)
+        pMapValue->insert(google::protobuf::MapPair<string, string>(it.first, it.second));
+
+    return true;
+}
 }// end namespace
 /* EOF */
 

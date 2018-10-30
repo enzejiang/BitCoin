@@ -101,6 +101,7 @@ bool OnInit(int argc, char* argv[])
     sleep(30);
     printf("mapWallet.size() = %d\n", WalletServ::getInstance()->mapWallet.size());
     
+    while(1);
     if (argc == 2) {
         ThreadRandSendTest(argv[1]);
     }

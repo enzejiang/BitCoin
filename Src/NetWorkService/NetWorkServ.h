@@ -18,15 +18,13 @@
 
 #ifndef EZ_BT_NWS_H
 #define EZ_BT_NWS_H
-#include <pthread.h>
 #include "CAddress.h"
-#include "CNode.h"
-
+#include "ZMQNode.h"
+#include "zhelpers.h"
 namespace Enze
 {
 
-    class CAddrDB;
-    
+    class CInv;
     class NetWorkServ
     {
         public:
@@ -35,28 +33,29 @@ namespace Enze
         public:
             void initiation();
             bool ConnectSocket(const CAddress& addrConnect, SOCKET& hSocketRet);
-            CNode* FindNode(unsigned int ip);
-            CNode* FindNode(const CAddress& addr);
-            CNode* ConnectNode(const CAddress& addrConnect, int64 nTimeout=0);
+            ZNode* FindNode(unsigned int ip);
+            ZNode* FindNode(const CAddress& addr);
+            ZNode* FindNode(const char* endPoint);
+            ZNode* ConnectNode(const CAddress& addrConnect, int64 nTimeout=0);
+            ZNode* ConnectNode(const char* endPoint);
             bool StartNode();
             bool StopNode();
     
             template<typename Stream>
             bool ScanMessageStart(Stream& s);
-            bool ProcessMessages(CNode* pfrom);
-            bool ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv);
-            bool SendMessages(CNode* pto);
+            bool ProcessMessages(ZNode* pfrom);
+            bool SendMessages(ZNode* pto);
             
             void CheckForShutdown(int n);
-            void AbandonRequests(void (*fn)(void*, CDataStream&), void* param1);
+            void AbandonRequests(/*void (*fn)(void*, CDataStream&), void* param1*/);
             bool AnySubscribed(unsigned int nChannel);
             map<string, CAddress>& getMapAddr()
             {
                 return m_cMapAddresses; 
             }
-            vector<CNode*>& getNodeList()
+            map<string, ZNode*>& getNodeList()
             {
-                return m_cNodeLst;
+                return m_cZNodeLst;
             }
             
             const CAddress& getLocakAddr()
@@ -69,10 +68,16 @@ namespace Enze
                 return mapAlreadyAskedFor;
             }
             
-            void MessageHandler(void* parg);
-            void SocketHandler(void* parg);
-            void OpenConnections(void* parg);
-            
+            inline void removeAlreadyAskedFor(const CInv& inv)
+            {
+                mapAlreadyAskedFor.erase(inv);
+            }
+
+            void MessageHandler();
+            void SocketHandler();
+            void OpenConnections();
+            void NodeSyncThread();
+            void MessageRecv();
         private:
             NetWorkServ();
             ~NetWorkServ();
@@ -88,28 +93,33 @@ namespace Enze
             bool m_bClient = false;
             uint64 m_nLocalServices = (m_bClient ? 0 : NODE_NETWORK);
             CAddress m_cAddrLocalHost;// = new CAddress(0, DEFAULT_PORT, m_nLocalServices);// 本地主机地址
-            CNode* m_pcNodeLocalHost = new CNode(INVALID_SOCKET, CAddress("127.0.0.1", m_nLocalServices)); // 本地节点
+            ZNode* m_pcNodeLocalHost;// = new ZNode(INVALID_SOCKET, CAddress("127.0.0.1", m_nLocalServices)); // 本地节点
             
-            vector<CNode*> m_cNodeLst;
+       //     vector<ZNode*> m_cZNodeLst;
+            map<string, ZNode*> m_cZNodeLst; // key:Endpoint. value is node
             map<string, CAddress> m_cMapAddresses;
             CAddress addrProxy;
 
-            map<CInv, CDataStream> mapRelay;
+    //        map<CInv, CDataStream> mapRelay;
             deque<pair<int64, CInv> > vRelayExpiration;
             map<CInv, int64> mapAlreadyAskedFor;
-            
+            void* m_cZmqCtx; 
+            string m_strIdentity;
             static NetWorkServ* m_pInstance;
             static pthread_mutex_t m_NWSLock;
         public:
             // 转播库存
             inline void RelayInventory(const CInv& inv)
             {
+                printf("%s---%d\n", __FILE__, __LINE__);
                 // 将此节点相连的所有节点进行转播此信息
                 // Put on lists to offer to the other nodes
-              //  CRITICAL_BLOCK(cs_m_cNodeLst)
-                    foreach(CNode* pnode, m_cNodeLst)
-                        pnode->PushInventory(inv);
+                foreach(auto it, m_cZNodeLst) {
+                    ZNode * pnode =  it.second;
+                    pnode->PushInventory(inv);
+                }
             }
+
 
             template<typename T>
             void RelayMessage(const CInv& inv, const T& a)
@@ -154,39 +164,37 @@ namespace Enze
             //
 
             template<typename T>
-            void AdvertStartPublish(CNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
+            void AdvertStartPublish(ZNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
             {
                 // Add to sources
-                obj.setSources.insert(pfrom->addr.ip);
+                obj.setSources.insert(pfrom->getAddr().ip);
 
                 if (!AdvertInsert(obj))
                     return;
-
+                printf("%s---%d\n", __FILE__, __LINE__);
                 // Relay
-               // CRITICAL_BLOCK(cs_m_cNodeLst)
-                    foreach(CNode* pnode, m_cNodeLst)
-                        if (pnode != pfrom && (nHops < PUBLISH_HOPS || pnode->IsSubscribed(nChannel)))
-                            pnode->PushMessage("publish", nChannel, nHops, obj);
+                //foreach(ZNode* pnode, m_cZNodeLst)
+                    //if (pnode != pfrom && (nHops < PUBLISH_HOPS || pnode->IsSubscribed(nChannel)))
+                        //pnode->PushMessage("publish", nChannel, nHops, obj);
             }
 
             template<typename T>
-            void AdvertStopPublish(CNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
+            void AdvertStopPublish(ZNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
             {
                 uint256 hash = obj.GetHash();
-
-               // CRITICAL_BLOCK(cs_m_cNodeLst)
-                    foreach(CNode* pnode, m_cNodeLst)
-                        if (pnode != pfrom && (nHops < PUBLISH_HOPS || pnode->IsSubscribed(nChannel)))
-                            pnode->PushMessage("pub-cancel", nChannel, nHops, hash);
+                printf("%s---%d\n", __FILE__, __LINE__);
+                //foreach(ZNode* pnode, m_cZNodeLst)
+                //    if (pnode != pfrom && (nHops < PUBLISH_HOPS || pnode->IsSubscribed(nChannel)))
+                //        pnode->PushMessage("pub-cancel", nChannel, nHops, hash);
 
                 AdvertErase(obj);
             }
 
             template<typename T>
-            void AdvertRemoveSource(CNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
+            void AdvertRemoveSource(ZNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
             {
                 // Remove a source
-                obj.setSources.erase(pfrom->addr.ip);
+                obj.setSources.erase(pfrom->getAddr().ip);
 
                 // If no longer supported by any sources, cancel it
                 if (obj.setSources.empty())

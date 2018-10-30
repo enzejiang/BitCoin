@@ -199,7 +199,7 @@ bool CTxDB::LoadBlockIndex()
     const uint256& hashGenesisBlock  = BlockEngine::getInstance()->getGenesisHash();//hashGenesisBlock;
     const uint256& hashBestChain = BlockEngine::getInstance()->getHashBestChain();//hashBestChain;
     CBlockIndex* pindexBest = BlockEngine::getInstance()->getBestIndex();//pindexBest;
-    const map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->getMapBlockIndex();//mapBlockIndex;
+    map<uint256, CBlockIndex*>& mapBlockIndex = BlockEngine::getInstance()->getMapBlockIndex();//mapBlockIndex;
     const int nBestHeight = BlockEngine::getInstance()->getBestHeight();//nBestHeight;
     unsigned int fFlags = DB_SET_RANGE;
     loop
@@ -285,11 +285,12 @@ bool CTxDB::LoadBlockIndex()
         BlockEngine::getInstance()->setBestChain(BestHash);
     }
      printf("CTxDB::LoadBlockIndex---read best hash--end\n");
-    if (!mapBlockIndex.count(hashBestChain))
+    if (!mapBlockIndex.count(BestHash))
         return error("CTxDB::LoadBlockIndex() : blockindex for hashBestChain not found\n");
     printf("error %s--%d\n", __FILE__, __LINE__);
-  //  BlockEngine::getInstance()->setBestIndex(const_cast<CBlockIndex*>(mapBlockIndex[BestHash]));
-  //  BlockEngine::getInstance()->setBestHeight(pindexBest->m_nCurHeight);
+    BlockEngine::getInstance()->setBestIndex(mapBlockIndex[BestHash]);
+    pindexBest = mapBlockIndex[BestHash];
+    BlockEngine::getInstance()->setBestHeight(pindexBest->m_nCurHeight);
     printf("LoadBlockIndex(): hashBestChain=%s  height=%d\n", hashBestChain.ToString().substr(0,14).c_str(), nBestHeight);
 
     return true;

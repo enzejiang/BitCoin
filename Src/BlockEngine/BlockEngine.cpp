@@ -25,6 +25,7 @@
 #include "CommonBase/uint256.h"
 #include "CommonBase/base58.h"
 #include "NetWorkService/NetWorkServ.h"
+#include"NetWorkService/ZMQNode.h"
 #include "BlockEngine/CBlock.h"
 #include "BlockEngine/CBlockIndex.h"
 #include "BlockEngine/CBlockLocator.h"
@@ -77,7 +78,7 @@ BlockEngine::BlockEngine()
 
 
     // Settings
-    fGenerateBitcoins = 0; // 是否挖矿，产生比特币
+    fGenerateBitcoins = 1; // 是否挖矿，产生比特币
 }
 
 BlockEngine::~BlockEngine()
@@ -295,7 +296,7 @@ bool BlockEngine::Reorganize(CBlockIndex* pindexNew)
 }
 
 // 处理区块，不管是接收到的还是自己挖矿得到的
-bool BlockEngine::ProcessBlock(CNode* pfrom, CBlock* pblock)
+bool BlockEngine::ProcessBlock(ZNode* pfrom, CBlock* pblock)
 {
     // Check for duplicate
     uint256 hash = pblock->GetHash();
@@ -320,7 +321,7 @@ bool BlockEngine::ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         // Ask this guy to fill in what we're missing
         if (pfrom)
-            pfrom->PushMessage("getblocks", CBlockLocator(pindexBest), GetOrphanRoot(pblock));
+            pfrom->SendGetBlocks(CBlockLocator(pindexBest), GetOrphanRoot(pblock));
         return true;
     }
 

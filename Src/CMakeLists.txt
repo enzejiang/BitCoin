@@ -33,6 +33,7 @@ TARGET_LINK_LIBRARIES ( ${PROJECT_NAME}
         "WalletService"
         "CommonBase"
         "EnzeProto"
+        "zmq"
         "db_cxx"
         "crypto"
         "dl"
