@@ -163,9 +163,9 @@ bool UnSeriaTxIn(const TxIn& cProtoc, CTxIn& cTargetData)
     cTargetData.m_cScriptSig.clear();
     foreach(auto it, cProtoc.cscriptsig())
     {
-        cTargetData.m_cScriptSig.push_back(it);
+        cTargetData.m_cScriptSig<<(it);
     }
-
+    printf("unSeriaTxIn--protoc_cScriptSig[%s], target script[%s]\n", cProtoc.cscriptsig().c_str(), cTargetData.m_cScriptSig.ToString().c_str());
     cTargetData.m_uSequence = cProtoc.usequence();
     return Enze::UnSeriaOutPoint(cProtoc.cprevout(), cTargetData.m_cPrevOut);
 
@@ -173,9 +173,14 @@ bool UnSeriaTxIn(const TxIn& cProtoc, CTxIn& cTargetData)
 
 bool SeriaTxIn(const CTxIn& cSrcData, TxIn& cProtoc)
 {
+    printf("SeriaTxIn--start\n");
     cProtoc.Clear();
     cProtoc.set_usequence(cSrcData.m_uSequence);
-    cProtoc.set_cscriptsig(cSrcData.m_cScriptSig.ToString());
+
+    cSrcData.m_cScriptSig.PrintHex();
+    string strScript = HexStr(cSrcData.m_cScriptSig.begin(), cSrcData.m_cScriptSig.end(), false);
+    cProtoc.set_cscriptsig(strScript);
+    printf("SeriaTxIn--cScriptSig[%s]\n", cProtoc.cscriptsig().c_str());
     return Enze::SeriaOutPoint(cSrcData.m_cPrevOut, *cProtoc.mutable_cprevout());
 }
 
@@ -185,17 +190,24 @@ bool UnSeriaTxOut(const TxOut& cProtoc, CTxOut& cTargetData)
     cTargetData.m_cScriptPubKey.clear();
     foreach(auto it, cProtoc.cscriptpubkey())
     {
-        cTargetData.m_cScriptPubKey.push_back(it);
+        cTargetData.m_cScriptPubKey<<(it);
     }
+    printf("unSeriaTxOut--protoc_cScriptSig[%s], target script[%s]\n", cProtoc.cscriptpubkey().c_str(), cTargetData.m_cScriptPubKey.ToString().c_str());
 
     return true;
 }
 
 bool SeriaTxOut(const CTxOut& cSrcData, TxOut& cProtoc)
 {
+    printf("SeriaTxOut--start\n");
     cProtoc.Clear();
     cProtoc.set_nvalue(cSrcData.m_nValue);
-    cProtoc.set_cscriptpubkey(cSrcData.m_cScriptPubKey.ToString());
+    cSrcData.m_cScriptPubKey.PrintHex();
+    string strScript = HexStr(cSrcData.m_cScriptPubKey.begin(), cSrcData.m_cScriptPubKey.end(), false);
+    cProtoc.set_cscriptpubkey(strScript);
+    printf("SeriaTxOut--cScriptSig[%s]\n", cProtoc.cscriptpubkey().c_str());
+  //  printf("SeriaTxOut--cScriptSig[%s]\n", cSrcData.m_cScriptPubKey.ToString().c_str());
+
     return true;
 }
 

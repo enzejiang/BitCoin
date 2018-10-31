@@ -390,18 +390,18 @@ bool CBlock::WriteToDisk(bool fWriteTransactions, unsigned int& nFileRet, unsign
 
     // Write index header
     unsigned int nSize = strSerial.length();//fileout.GetSerializeSize(*this);
-        printf("CBlock::WriteToDisk--- serail--Len[%d]\n", nSize);
+    printf("CBlock::WriteToDisk--- serail--Len[%d]\n", nSize);
     nBlockPosRet = ftell(fileout);
 
     if (nBlockPosRet == -1)
         return error("CBlock::WriteToDisk() : ftell failed");
     // 放入消息头和对应块的大小值
     fileout.write((const char*)&nSize, sizeof(nSize));
-     printf("CBlock::WriteToDisk--- serail--Len[%d]---2\n", nSize);
+     printf("CBlock::WriteToDisk--startPost[%d]- serail--Len[%d]---2\n", nBlockPosRet, nSize);
     // Write block
     // 将block的内容写入到文件中
     fileout.write(strSerial.c_str(), nSize);
-     printf("CBlock::WriteToDisk--- serail--Len[%d]--3\n", nSize);
+    printf("CBlock::WriteToDisk--- serail--Len[%d]--3\n", nSize);
     return true;
 }
 
@@ -409,7 +409,7 @@ bool CBlock::WriteToDisk(bool fWriteTransactions, unsigned int& nFileRet, unsign
 bool CBlock::ReadFromDisk(unsigned int nFile, unsigned int nBlockPos, bool fReadTransactions)
 {
     SetNull();
-
+    printf("CBlock::ReadFromDisk-----nBlockPos[%d]--1\n", nBlockPos);
     // Open history file to read
     CAutoFile filein = BlockEngine::getInstance()->OpenBlockFile(nFile, nBlockPos, "rb");
     if (!filein)
@@ -422,6 +422,7 @@ bool CBlock::ReadFromDisk(unsigned int nFile, unsigned int nBlockPos, bool fRead
     filein.read((char*)&nSize, sizeof(nSize));
     if (-1 == nSize)
         return error("CBlock::ReadFromDisk, Get Block Size");
+    printf("CBlock::ReadFromDisk-----Size[%d]--2\n", nSize);
     char *buf = (char*)malloc(nSize);
     filein.read(buf, nSize);
     Block cProtoc;

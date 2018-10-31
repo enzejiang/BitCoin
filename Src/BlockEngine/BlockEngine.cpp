@@ -68,7 +68,7 @@ void BlockEngine::Destory()
 }
 
 BlockEngine::BlockEngine()
-: hashGenesisBlock("0xf0361fbf573b724ab7015ceb7523ee4c1ae3d8640f7f137000faaf4636081d84")
+: hashGenesisBlock("0x58e9a5b44ce792987443ad0248af991fcf579405b5c13559c6d68343c625f067")
 {
 
     pindexGenesisBlock = NULL; // 基础块对应的索引，也即是创世区块对应的索引
@@ -573,7 +573,7 @@ bool BlockEngine::LoadBlockIndex(bool fAllowNew)
        // txNew.m_vTxOut[0].m_cScriptPubKey.print();
         //block.print();
         //assert(block.m_hashMerkleRoot == uint256("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        assert(block.m_hashMerkleRoot == uint256("0x29253537fce7c26fdbde578cf5465d0e3e3759b66f907d546e2527cb603f2437"));
+        assert(block.m_hashMerkleRoot == uint256("0xafebce3b7ef6504ad44c50a4b8a3d78bd64c8f9cadcbfe9aa84e6e41d007519c"));
 
         assert(block.GetHash() == hashGenesisBlock);
 

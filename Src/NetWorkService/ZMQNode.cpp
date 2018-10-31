@@ -256,12 +256,15 @@ void ZNode::SendGetAddrRequest()
 void ZNode::SendInv(const vector<CInv>& vInv, bool bReqInv)
 {
     PB_MessageData *cProtoc = new PB_MessageData();
-    if (bReqInv)
+    if (!bReqInv)
         cProtoc->set_emsgkind(PB_MessageData_Mesg_Kind_MK_Inv);
     else 
         cProtoc->set_emsgkind(PB_MessageData_Mesg_Kind_MK_GetData);
-       
-    printf("%s---%d\n", __FILE__, __LINE__);
+    foreach(auto it, vInv) {
+        SeriaInv(it, *(cProtoc->add_vinv()));
+    }
+
+    printf("ZNode::SendInv,DataSize[%d],%s---%d\n", cProtoc->ByteSizeLong(),__FILE__, __LINE__);
     std::lock_guard<std::mutex> guard(m_cSndMtx);
     m_SendLst.push_back(cProtoc);
 }
@@ -350,6 +353,7 @@ bool ZNode::ProcessMsg()
         printf("ZNode::ProcessMsg()---recv Data\n");
         PB_MessageData_Mesg_Kind eMsgKind = pData->emsgkind();
         static map<unsigned int, vector<unsigned char> > mapReuseKey;
+        printf("ZNode::ProcessMsg()---recv Data Kind[%d]\n", eMsgKind);
 #if 0
         // 消息采集频率进行处理
         if (nDropMessagesTest > 0 && GetRand(nDropMessagesTest) == 0)
