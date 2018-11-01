@@ -157,7 +157,7 @@ class Order : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
 
   // accessors -------------------------------------------------------
 
-  // string hashReply = 1;
+  // bytes hashReply = 1;
   void clear_hashreply();
   static const int kHashReplyFieldNumber = 1;
   const ::std::string& hashreply() const;
@@ -166,7 +166,7 @@ class Order : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   void set_hashreply(::std::string&& value);
   #endif
   void set_hashreply(const char* value);
-  void set_hashreply(const char* value, size_t size);
+  void set_hashreply(const void* value, size_t size);
   ::std::string* mutable_hashreply();
   ::std::string* release_hashreply();
   void set_allocated_hashreply(::std::string* hashreply);
@@ -201,7 +201,7 @@ class Order : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
 #endif  // __GNUC__
 // Order
 
-// string hashReply = 1;
+// bytes hashReply = 1;
 inline void Order::clear_hashreply() {
   hashreply_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -228,7 +228,7 @@ inline void Order::set_hashreply(const char* value) {
   hashreply_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.Order.hashReply)
 }
-inline void Order::set_hashreply(const char* value, size_t size) {
+inline void Order::set_hashreply(const void* value, size_t size) {
   
   hashreply_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

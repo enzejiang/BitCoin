@@ -68,7 +68,7 @@ void BlockEngine::Destory()
 }
 
 BlockEngine::BlockEngine()
-: hashGenesisBlock("0x58e9a5b44ce792987443ad0248af991fcf579405b5c13559c6d68343c625f067")
+: hashGenesisBlock("0xf510d86af37ae70980806706913a812d0b30350572dda9c748de079f3805dd76")
 {
 
     pindexGenesisBlock = NULL; // 基础块对应的索引，也即是创世区块对应的索引
@@ -573,7 +573,7 @@ bool BlockEngine::LoadBlockIndex(bool fAllowNew)
        // txNew.m_vTxOut[0].m_cScriptPubKey.print();
         //block.print();
         //assert(block.m_hashMerkleRoot == uint256("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        assert(block.m_hashMerkleRoot == uint256("0xafebce3b7ef6504ad44c50a4b8a3d78bd64c8f9cadcbfe9aa84e6e41d007519c"));
+        assert(block.m_hashMerkleRoot == uint256("0x0e5ce7366413c7c0dc91923b90a7a9cf1575ece3b492baf74e02cc6b67c52845"));
 
         assert(block.GetHash() == hashGenesisBlock);
 
@@ -752,9 +752,14 @@ bool BlockEngine::BitcoinMiner()
 #endif
         unsigned int nTransactionsUpdatedLast = WalletServ::getInstance()->nTransactionsUpdated;
         CBlockIndex* pindexPrev = pindexBest;
+        if (NULL == pindexPrev) {
+            printf("**************************\nBitcoinMiner---pindexPrev == NULL\n*************************\n");
+
+
+        }
 		// 获取挖矿难度
         unsigned int m_uBits = GetNextWorkRequired(pindexPrev);
-        printf("BitcoinMiner---[%0x]\n", m_uBits);
+       // printf("BitcoinMiner---[%0x]--prev Hash [%s]\n", m_uBits, pindexPrev->GetBlockHash().ToString().c_str());
 
         // 创建币基交易
         // Create coinbase tx

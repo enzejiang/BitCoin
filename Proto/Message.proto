@@ -36,5 +36,5 @@ message PB_MessageData
     Review cReview = 7;
     Order  cOrder = 8;
     Block cblock = 9;
-    string hashreply = 10;
+    bytes hashreply = 10;
 }

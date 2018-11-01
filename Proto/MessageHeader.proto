@@ -17,7 +17,7 @@ message MessageHeader
         MK_SubmitOrder = 10;
         MK_Reply = 11;
     }
-    string pchMessageStart = 1; 
+    bytes pchMessageStart = 1; 
     Mesg_Kind eMsgKind = 2;
     uint32 MessageSize = 3; 
 }

@@ -4,6 +4,6 @@ package Enze;
 
 message Order 
 {
-    string hashReply = 1;
+    bytes hashReply = 1;
     WalletTx txOrder = 2;
 }

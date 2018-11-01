@@ -4,5 +4,5 @@ package Enze;
 message Inventory
 {
     int32 type = 1;
-    string hash = 2;
+    bytes hash = 2;
 }

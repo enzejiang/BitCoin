@@ -160,7 +160,7 @@ class GetBlocks_BlockLocator : public ::google::protobuf::Message /* @@protoc_in
 
   // accessors -------------------------------------------------------
 
-  // repeated string vHave = 1;
+  // repeated bytes vHave = 1;
   int vhave_size() const;
   void clear_vhave();
   static const int kVHaveFieldNumber = 1;
@@ -171,14 +171,14 @@ class GetBlocks_BlockLocator : public ::google::protobuf::Message /* @@protoc_in
   void set_vhave(int index, ::std::string&& value);
   #endif
   void set_vhave(int index, const char* value);
-  void set_vhave(int index, const char* value, size_t size);
+  void set_vhave(int index, const void* value, size_t size);
   ::std::string* add_vhave();
   void add_vhave(const ::std::string& value);
   #if LANG_CXX11
   void add_vhave(::std::string&& value);
   #endif
   void add_vhave(const char* value);
-  void add_vhave(const char* value, size_t size);
+  void add_vhave(const void* value, size_t size);
   const ::google::protobuf::RepeatedPtrField<::std::string>& vhave() const;
   ::google::protobuf::RepeatedPtrField<::std::string>* mutable_vhave();
 
@@ -289,7 +289,7 @@ class GetBlocks : public ::google::protobuf::Message /* @@protoc_insertion_point
 
   // accessors -------------------------------------------------------
 
-  // string hashStop = 2;
+  // bytes hashStop = 2;
   void clear_hashstop();
   static const int kHashStopFieldNumber = 2;
   const ::std::string& hashstop() const;
@@ -298,7 +298,7 @@ class GetBlocks : public ::google::protobuf::Message /* @@protoc_insertion_point
   void set_hashstop(::std::string&& value);
   #endif
   void set_hashstop(const char* value);
-  void set_hashstop(const char* value, size_t size);
+  void set_hashstop(const void* value, size_t size);
   ::std::string* mutable_hashstop();
   ::std::string* release_hashstop();
   void set_allocated_hashstop(::std::string* hashstop);
@@ -333,7 +333,7 @@ class GetBlocks : public ::google::protobuf::Message /* @@protoc_insertion_point
 #endif  // __GNUC__
 // GetBlocks_BlockLocator
 
-// repeated string vHave = 1;
+// repeated bytes vHave = 1;
 inline int GetBlocks_BlockLocator::vhave_size() const {
   return vhave_.size();
 }
@@ -363,7 +363,7 @@ inline void GetBlocks_BlockLocator::set_vhave(int index, const char* value) {
   vhave_.Mutable(index)->assign(value);
   // @@protoc_insertion_point(field_set_char:Enze.GetBlocks.BlockLocator.vHave)
 }
-inline void GetBlocks_BlockLocator::set_vhave(int index, const char* value, size_t size) {
+inline void GetBlocks_BlockLocator::set_vhave(int index, const void* value, size_t size) {
   vhave_.Mutable(index)->assign(
     reinterpret_cast<const char*>(value), size);
   // @@protoc_insertion_point(field_set_pointer:Enze.GetBlocks.BlockLocator.vHave)
@@ -387,7 +387,7 @@ inline void GetBlocks_BlockLocator::add_vhave(const char* value) {
   vhave_.Add()->assign(value);
   // @@protoc_insertion_point(field_add_char:Enze.GetBlocks.BlockLocator.vHave)
 }
-inline void GetBlocks_BlockLocator::add_vhave(const char* value, size_t size) {
+inline void GetBlocks_BlockLocator::add_vhave(const void* value, size_t size) {
   vhave_.Add()->assign(reinterpret_cast<const char*>(value), size);
   // @@protoc_insertion_point(field_add_pointer:Enze.GetBlocks.BlockLocator.vHave)
 }
@@ -457,7 +457,7 @@ inline void GetBlocks::set_allocated_locator(::Enze::GetBlocks_BlockLocator* loc
   // @@protoc_insertion_point(field_set_allocated:Enze.GetBlocks.locator)
 }
 
-// string hashStop = 2;
+// bytes hashStop = 2;
 inline void GetBlocks::clear_hashstop() {
   hashstop_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -484,7 +484,7 @@ inline void GetBlocks::set_hashstop(const char* value) {
   hashstop_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.GetBlocks.hashStop)
 }
-inline void GetBlocks::set_hashstop(const char* value, size_t size) {
+inline void GetBlocks::set_hashstop(const void* value, size_t size) {
   
   hashstop_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

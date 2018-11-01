@@ -157,15 +157,19 @@ bool SeriaOutPoint(const COutPoint& cSrcData, OutPoint& cProtoc)
     return true;
 }
 
-bool UnSeriaTxIn(const TxIn& cProtoc, CTxIn& cTargetData)
+bool UnSeriaTxIn(TxIn& cProtoc, CTxIn& cTargetData)
 {
    // cTargetData.m_cScriptSig;
     cTargetData.m_cScriptSig.clear();
-    foreach(auto it, cProtoc.cscriptsig())
+   // CScript strScritp(cProtoc.cscriptsig().begin(), cProtoc.cscriptsig().end());
+   // cTargetData.m_cScriptSig = strScritp;
+#if 1
+    foreach(char it, cProtoc.cscriptsig())
     {
-        cTargetData.m_cScriptSig<<(it);
+        cTargetData.m_cScriptSig.push_back(it);
     }
-    printf("unSeriaTxIn--protoc_cScriptSig[%s], target script[%s]\n", cProtoc.cscriptsig().c_str(), cTargetData.m_cScriptSig.ToString().c_str());
+#endif
+    printf("unSeriaTxIn--protoc_cScriptSig_size[%d], target scriptsz[%d]\n", cProtoc.cscriptsig().length(), cTargetData.m_cScriptSig.size());
     cTargetData.m_uSequence = cProtoc.usequence();
     return Enze::UnSeriaOutPoint(cProtoc.cprevout(), cTargetData.m_cPrevOut);
 
@@ -173,46 +177,52 @@ bool UnSeriaTxIn(const TxIn& cProtoc, CTxIn& cTargetData)
 
 bool SeriaTxIn(const CTxIn& cSrcData, TxIn& cProtoc)
 {
-    printf("SeriaTxIn--start\n");
+    printf("SeriaTxIn--start[%d]\n", cSrcData.m_cScriptSig.size());
     cProtoc.Clear();
     cProtoc.set_usequence(cSrcData.m_uSequence);
 
-    cSrcData.m_cScriptSig.PrintHex();
-    string strScript = HexStr(cSrcData.m_cScriptSig.begin(), cSrcData.m_cScriptSig.end(), false);
+//    cSrcData.m_cScriptSig.PrintHex();
+//    string strScript = HexStr(cSrcData.m_cScriptSig.begin(), cSrcData.m_cScriptSig.end(), false);
+    string strScript(cSrcData.m_cScriptSig.begin(), cSrcData.m_cScriptSig.end());
     cProtoc.set_cscriptsig(strScript);
-    printf("SeriaTxIn--cScriptSig[%s]\n", cProtoc.cscriptsig().c_str());
+    printf("SeriaTxIn--cScriptSigSz[%d]--strScriptSz[%d]\n", cProtoc.cscriptsig().length(), strScript.length());
     return Enze::SeriaOutPoint(cSrcData.m_cPrevOut, *cProtoc.mutable_cprevout());
 }
 
-bool UnSeriaTxOut(const TxOut& cProtoc, CTxOut& cTargetData)
+bool UnSeriaTxOut(TxOut& cProtoc, CTxOut& cTargetData)
 {
     cTargetData.m_nValue = cProtoc.nvalue();
     cTargetData.m_cScriptPubKey.clear();
-    foreach(auto it, cProtoc.cscriptpubkey())
+    //CScript strScritp(cProtoc.cscriptpubkey().begin(), cProtoc.cscriptpubkey().end());
+    //cTargetData.m_cScriptPubKey = strScritp;
+    foreach(char it, cProtoc.cscriptpubkey())
     {
-        cTargetData.m_cScriptPubKey<<(it);
+        cTargetData.m_cScriptPubKey.push_back(it);
     }
-    printf("unSeriaTxOut--protoc_cScriptSig[%s], target script[%s]\n", cProtoc.cscriptpubkey().c_str(), cTargetData.m_cScriptPubKey.ToString().c_str());
+
+//    printf("unSeriaTxOut--protoc_cScriptSig[%s] \n\n", cProtoc.cscriptpubkey().c_str());
+//    cTargetData.m_cScriptPubKey.PrintHex();
 
     return true;
 }
 
 bool SeriaTxOut(const CTxOut& cSrcData, TxOut& cProtoc)
 {
-    printf("SeriaTxOut--start\n");
+//    printf("SeriaTxOut--start\n");
     cProtoc.Clear();
     cProtoc.set_nvalue(cSrcData.m_nValue);
-    cSrcData.m_cScriptPubKey.PrintHex();
-    string strScript = HexStr(cSrcData.m_cScriptPubKey.begin(), cSrcData.m_cScriptPubKey.end(), false);
+    string strScript(cSrcData.m_cScriptPubKey.begin(), cSrcData.m_cScriptPubKey.end());
     cProtoc.set_cscriptpubkey(strScript);
-    printf("SeriaTxOut--cScriptSig[%s]\n", cProtoc.cscriptpubkey().c_str());
-  //  printf("SeriaTxOut--cScriptSig[%s]\n", cSrcData.m_cScriptPubKey.ToString().c_str());
+  //  printf("SeriaTxOut--cScriptSig[%s]--strScript[%s]\n", cProtoc.cscriptpubkey().c_str(), strScript.c_str());
+  //  printf("SeriaTxOut--cScriptSig[%s]\n\n\n", cSrcData.m_cScriptPubKey.ToString().c_str());
+ //   cSrcData.m_cScriptPubKey.PrintHex();
 
     return true;
 }
 
 bool UnSeriaTransaction(const Transaction& cProtoc, CTransaction& cTargetData)
 {
+    cTargetData.SetNull();
     cTargetData.m_nCurVersion = cProtoc.ncurversion();
     cTargetData.m_nLockTime   = cProtoc.nlocktime();
     cTargetData.m_vTxIn.clear();
@@ -225,12 +235,13 @@ bool UnSeriaTransaction(const Transaction& cProtoc, CTransaction& cTargetData)
 
         cTargetData.m_vTxIn.push_back(txin);
     }
-
+    printf("UnSeriaTransaction--cScriptSigsz[%d]\n\n\n", cTargetData.m_vTxIn[0].m_cScriptSig.size());
     foreach(auto it, cProtoc.vtxout())
     {
         CTxOut txout;
         if(!Enze::UnSeriaTxOut(it, txout))
             return false;
+
         cTargetData.m_vTxOut.push_back(txout);
     }
 
@@ -439,6 +450,7 @@ bool SeriaWalletTx(const CWalletTx& wtx, WalletTx& cProtoData)
     
 bool UnSeriaBlock(const Block& cProtoc, CBlock& cTargetData)
 {
+    printf("UnSeriaBlock--start\n");
     cTargetData.m_nCurVersion = cProtoc.ncurversion();
     cTargetData.m_uBits = cProtoc.ubits();
     cTargetData.m_uNonce = cProtoc.unonce();
@@ -453,11 +465,14 @@ bool UnSeriaBlock(const Block& cProtoc, CBlock& cTargetData)
             return false;
         cTargetData.m_vTrans.push_back(tx);
     }
+    cTargetData.BuildMerkleTree();
     return true;
 }
     
 bool SeriaBlock(const CBlock& cSrcData, Block& cProtoc)
 {
+    printf("SeriaBlock-m_hashPrevBlock-[%s], m_hashMerkleRoot[%s]\n", cSrcData.m_hashPrevBlock.ToString().c_str(), cSrcData.m_hashMerkleRoot.ToString().c_str());
+    cSrcData.BuildMerkleTree();
     cProtoc.Clear();
     cProtoc.set_ncurversion(cSrcData.m_nCurVersion);
     cProtoc.set_ubits(cSrcData.m_uBits);
@@ -470,6 +485,10 @@ bool SeriaBlock(const CBlock& cSrcData, Block& cProtoc)
         if(!SeriaTransaction(it,*cProtoc.add_vtrans()))
             return false;
     }
+
+
+    printf("SeriaBlock-hashmerkleroot-[%s]\n", cProtoc.hashmerkleroot().c_str());
+
     printf("SeriaBlock---%d---%d\n", cSrcData.m_vTrans.size(), cProtoc.vtrans_size());
     return true;
 }

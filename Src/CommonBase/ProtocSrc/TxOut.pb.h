@@ -156,7 +156,7 @@ class TxOut : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
 
   // accessors -------------------------------------------------------
 
-  // string cScriptPubKey = 2;
+  // bytes cScriptPubKey = 2;
   void clear_cscriptpubkey();
   static const int kCScriptPubKeyFieldNumber = 2;
   const ::std::string& cscriptpubkey() const;
@@ -165,7 +165,7 @@ class TxOut : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   void set_cscriptpubkey(::std::string&& value);
   #endif
   void set_cscriptpubkey(const char* value);
-  void set_cscriptpubkey(const char* value, size_t size);
+  void set_cscriptpubkey(const void* value, size_t size);
   ::std::string* mutable_cscriptpubkey();
   ::std::string* release_cscriptpubkey();
   void set_allocated_cscriptpubkey(::std::string* cscriptpubkey);
@@ -211,7 +211,7 @@ inline void TxOut::set_nvalue(::google::protobuf::int64 value) {
   // @@protoc_insertion_point(field_set:Enze.TxOut.nValue)
 }
 
-// string cScriptPubKey = 2;
+// bytes cScriptPubKey = 2;
 inline void TxOut::clear_cscriptpubkey() {
   cscriptpubkey_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -238,7 +238,7 @@ inline void TxOut::set_cscriptpubkey(const char* value) {
   cscriptpubkey_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.TxOut.cScriptPubKey)
 }
-inline void TxOut::set_cscriptpubkey(const char* value, size_t size) {
+inline void TxOut::set_cscriptpubkey(const void* value, size_t size) {
   
   cscriptpubkey_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

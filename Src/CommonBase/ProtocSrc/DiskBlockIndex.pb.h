@@ -156,7 +156,7 @@ class DiskBlockIndex : public ::google::protobuf::Message /* @@protoc_insertion_
 
   // accessors -------------------------------------------------------
 
-  // string hashNext = 1;
+  // bytes hashNext = 1;
   void clear_hashnext();
   static const int kHashNextFieldNumber = 1;
   const ::std::string& hashnext() const;
@@ -165,12 +165,12 @@ class DiskBlockIndex : public ::google::protobuf::Message /* @@protoc_insertion_
   void set_hashnext(::std::string&& value);
   #endif
   void set_hashnext(const char* value);
-  void set_hashnext(const char* value, size_t size);
+  void set_hashnext(const void* value, size_t size);
   ::std::string* mutable_hashnext();
   ::std::string* release_hashnext();
   void set_allocated_hashnext(::std::string* hashnext);
 
-  // string hashPrev = 2;
+  // bytes hashPrev = 2;
   void clear_hashprev();
   static const int kHashPrevFieldNumber = 2;
   const ::std::string& hashprev() const;
@@ -179,12 +179,12 @@ class DiskBlockIndex : public ::google::protobuf::Message /* @@protoc_insertion_
   void set_hashprev(::std::string&& value);
   #endif
   void set_hashprev(const char* value);
-  void set_hashprev(const char* value, size_t size);
+  void set_hashprev(const void* value, size_t size);
   ::std::string* mutable_hashprev();
   ::std::string* release_hashprev();
   void set_allocated_hashprev(::std::string* hashprev);
 
-  // string hashMerkleRoot = 10;
+  // bytes hashMerkleRoot = 10;
   void clear_hashmerkleroot();
   static const int kHashMerkleRootFieldNumber = 10;
   const ::std::string& hashmerkleroot() const;
@@ -193,7 +193,7 @@ class DiskBlockIndex : public ::google::protobuf::Message /* @@protoc_insertion_
   void set_hashmerkleroot(::std::string&& value);
   #endif
   void set_hashmerkleroot(const char* value);
-  void set_hashmerkleroot(const char* value, size_t size);
+  void set_hashmerkleroot(const void* value, size_t size);
   ::std::string* mutable_hashmerkleroot();
   ::std::string* release_hashmerkleroot();
   void set_allocated_hashmerkleroot(::std::string* hashmerkleroot);
@@ -269,7 +269,7 @@ class DiskBlockIndex : public ::google::protobuf::Message /* @@protoc_insertion_
 #endif  // __GNUC__
 // DiskBlockIndex
 
-// string hashNext = 1;
+// bytes hashNext = 1;
 inline void DiskBlockIndex::clear_hashnext() {
   hashnext_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -296,7 +296,7 @@ inline void DiskBlockIndex::set_hashnext(const char* value) {
   hashnext_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.DiskBlockIndex.hashNext)
 }
-inline void DiskBlockIndex::set_hashnext(const char* value, size_t size) {
+inline void DiskBlockIndex::set_hashnext(const void* value, size_t size) {
   
   hashnext_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
@@ -322,7 +322,7 @@ inline void DiskBlockIndex::set_allocated_hashnext(::std::string* hashnext) {
   // @@protoc_insertion_point(field_set_allocated:Enze.DiskBlockIndex.hashNext)
 }
 
-// string hashPrev = 2;
+// bytes hashPrev = 2;
 inline void DiskBlockIndex::clear_hashprev() {
   hashprev_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -349,7 +349,7 @@ inline void DiskBlockIndex::set_hashprev(const char* value) {
   hashprev_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.DiskBlockIndex.hashPrev)
 }
-inline void DiskBlockIndex::set_hashprev(const char* value, size_t size) {
+inline void DiskBlockIndex::set_hashprev(const void* value, size_t size) {
   
   hashprev_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
@@ -473,7 +473,7 @@ inline void DiskBlockIndex::set_nnonce(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:Enze.DiskBlockIndex.nNonce)
 }
 
-// string hashMerkleRoot = 10;
+// bytes hashMerkleRoot = 10;
 inline void DiskBlockIndex::clear_hashmerkleroot() {
   hashmerkleroot_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -500,7 +500,7 @@ inline void DiskBlockIndex::set_hashmerkleroot(const char* value) {
   hashmerkleroot_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.DiskBlockIndex.hashMerkleRoot)
 }
-inline void DiskBlockIndex::set_hashmerkleroot(const char* value, size_t size) {
+inline void DiskBlockIndex::set_hashmerkleroot(const void* value, size_t size) {
   
   hashmerkleroot_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

@@ -70,7 +70,7 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
 ::google::protobuf::internal::DescriptorTable descriptor_table_TxOut_2eproto = {
   false, InitDefaults_TxOut_2eproto, 
   "\n\013TxOut.proto\022\004Enze\".\n\005TxOut\022\016\n\006nValue\030\001"
-  " \001(\003\022\025\n\rcScriptPubKey\030\002 \001(\tb\006proto3"
+  " \001(\003\022\025\n\rcScriptPubKey\030\002 \001(\014b\006proto3"
 ,
   "TxOut.proto", &assign_descriptors_table_TxOut_2eproto, 75,
 };
@@ -175,20 +175,18 @@ const char* TxOut::_InternalParse(const char* begin, const char* end, void* obje
         msg->set_nvalue(value);
         break;
       }
-      // string cScriptPubKey = 2;
+      // bytes cScriptPubKey = 2;
       case 2: {
         if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.TxOut.cScriptPubKey");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_cscriptpubkey();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       default: {
@@ -238,15 +236,11 @@ bool TxOut::MergePartialFromCodedStream(
         break;
       }
 
-      // string cScriptPubKey = 2;
+      // bytes cScriptPubKey = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_cscriptpubkey()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->cscriptpubkey().data(), static_cast<int>(this->cscriptpubkey().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.TxOut.cScriptPubKey"));
         } else {
           goto handle_unusual;
         }
@@ -285,13 +279,9 @@ void TxOut::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt64(1, this->nvalue(), output);
   }
 
-  // string cScriptPubKey = 2;
+  // bytes cScriptPubKey = 2;
   if (this->cscriptpubkey().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->cscriptpubkey().data(), static_cast<int>(this->cscriptpubkey().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.TxOut.cScriptPubKey");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       2, this->cscriptpubkey(), output);
   }
 
@@ -314,14 +304,10 @@ void TxOut::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(1, this->nvalue(), target);
   }
 
-  // string cScriptPubKey = 2;
+  // bytes cScriptPubKey = 2;
   if (this->cscriptpubkey().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->cscriptpubkey().data(), static_cast<int>(this->cscriptpubkey().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.TxOut.cScriptPubKey");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         2, this->cscriptpubkey(), target);
   }
 
@@ -346,10 +332,10 @@ size_t TxOut::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string cScriptPubKey = 2;
+  // bytes cScriptPubKey = 2;
   if (this->cscriptpubkey().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->cscriptpubkey());
   }
 

@@ -563,7 +563,7 @@ public:
 
     void PrintHex() const
     {
-        printf("CScript(%s)\n", HexStr(begin(), end()).c_str());
+        printf("CScript(%s)\n", HexStr(begin(), end(),false).c_str());
     }
 
     string ToString() const

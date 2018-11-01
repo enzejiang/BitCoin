@@ -8,8 +8,8 @@ message MerkleTx
     int32 nLockTime = 2; // 交易对应的锁定时间
     repeated TxIn vTxIn = 3; // 交易对应的输入
     repeated TxOut vTxOut = 4; //交易对应的锁定时间
-    string hashBlock = 5;// 交易所在block对应的hash值，因为block中有对应整个交易的默克尔树，这样才能根据分支来校验当前交易是否在block中 
-    repeated string vMerkleBranch = 6; // 当前交易对应的默克尔分支
+    bytes hashBlock = 5;// 交易所在block对应的hash值，因为block中有对应整个交易的默克尔树，这样才能根据分支来校验当前交易是否在block中 
+    repeated bytes vMerkleBranch = 6; // 当前交易对应的默克尔分支
     int32 nIndex = 7;// 当前交易在对应的block对应的输入m_vTrans列表中的索引，CMerkleTx就是根据索引来计算这个交易对应的默克尔树分支 
 }
 
@@ -24,8 +24,8 @@ message WalletTx
     int32 nLockTime = 2; // 交易对应的锁定时间
     repeated TxIn vTxIn = 3; // 交易对应的输入
     repeated TxOut vTxOut = 4; //交易对应的锁定时间
-    string hashBlock = 5;// 交易所在block对应的hash值，因为block中有对应整个交易的默克尔树，这样才能根据分支来校验当前交易是否在block中 
-    repeated string vMerkleBranch = 6; // 当前交易对应的默克尔分支
+    bytes hashBlock = 5;// 交易所在block对应的hash值，因为block中有对应整个交易的默克尔树，这样才能根据分支来校验当前交易是否在block中 
+    repeated bytes vMerkleBranch = 6; // 当前交易对应的默克尔分支
     int32 nIndex = 7;// 当前交易在对应的block对应的输入m_vTrans列表中的索引，CMerkleTx就是根据索引来计算这个交易对应的默克尔树分支的
     
     repeated MerkleTx vPrevTx = 8; // 当前交易A对应的输入对应的交易B，如果B所在block到最长链末尾的长度小于3，则将次交易放入

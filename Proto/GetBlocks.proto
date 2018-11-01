@@ -4,9 +4,9 @@ message GetBlocks
 {
     message BlockLocator
     {
-        repeated string vHave = 1;
+        repeated bytes vHave = 1;
     }
     BlockLocator locator = 1;
-    string hashStop =2;
+    bytes hashStop =2;
 }
 

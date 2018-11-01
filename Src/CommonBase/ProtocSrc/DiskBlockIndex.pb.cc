@@ -78,11 +78,11 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
 ::google::protobuf::internal::DescriptorTable descriptor_table_DiskBlockIndex_2eproto = {
   false, InitDefaults_DiskBlockIndex_2eproto, 
   "\n\024DiskBlockIndex.proto\022\004Enze\"\276\001\n\016DiskBlo"
-  "ckIndex\022\020\n\010hashNext\030\001 \001(\t\022\020\n\010hashPrev\030\002 "
-  "\001(\t\022\r\n\005nFile\030\003 \001(\r\022\021\n\tnBlockpos\030\004 \001(\r\022\017\n"
+  "ckIndex\022\020\n\010hashNext\030\001 \001(\014\022\020\n\010hashPrev\030\002 "
+  "\001(\014\022\r\n\005nFile\030\003 \001(\r\022\021\n\tnBlockpos\030\004 \001(\r\022\017\n"
   "\007nHeight\030\005 \001(\r\022\020\n\010nVersion\030\006 \001(\r\022\r\n\005nTim"
   "e\030\007 \001(\r\022\014\n\004nBit\030\010 \001(\r\022\016\n\006nNonce\030\t \001(\r\022\026\n"
-  "\016hashMerkleRoot\030\n \001(\tb\006proto3"
+  "\016hashMerkleRoot\030\n \001(\014b\006proto3"
 ,
   "DiskBlockIndex.proto", &assign_descriptors_table_DiskBlockIndex_2eproto, 229,
 };
@@ -205,36 +205,32 @@ const char* DiskBlockIndex::_InternalParse(const char* begin, const char* end, v
     ptr = Varint::Parse32Inline(ptr, &tag);
     GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
-      // string hashNext = 1;
+      // bytes hashNext = 1;
       case 1: {
         if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.DiskBlockIndex.hashNext");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashnext();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
-      // string hashPrev = 2;
+      // bytes hashPrev = 2;
       case 2: {
         if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.DiskBlockIndex.hashPrev");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashprev();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       // uint32 nFile = 3;
@@ -307,20 +303,18 @@ const char* DiskBlockIndex::_InternalParse(const char* begin, const char* end, v
         msg->set_nnonce(value);
         break;
       }
-      // string hashMerkleRoot = 10;
+      // bytes hashMerkleRoot = 10;
       case 10: {
         if (static_cast<::google::protobuf::uint8>(tag) != 82) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.DiskBlockIndex.hashMerkleRoot");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashmerkleroot();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       default: {
@@ -357,30 +351,22 @@ bool DiskBlockIndex::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // string hashNext = 1;
+      // bytes hashNext = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashnext()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashnext().data(), static_cast<int>(this->hashnext().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.DiskBlockIndex.hashNext"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // string hashPrev = 2;
+      // bytes hashPrev = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashprev()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashprev().data(), static_cast<int>(this->hashprev().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.DiskBlockIndex.hashPrev"));
         } else {
           goto handle_unusual;
         }
@@ -478,15 +464,11 @@ bool DiskBlockIndex::MergePartialFromCodedStream(
         break;
       }
 
-      // string hashMerkleRoot = 10;
+      // bytes hashMerkleRoot = 10;
       case 10: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (82 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashmerkleroot()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashmerkleroot().data(), static_cast<int>(this->hashmerkleroot().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.DiskBlockIndex.hashMerkleRoot"));
         } else {
           goto handle_unusual;
         }
@@ -520,23 +502,15 @@ void DiskBlockIndex::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string hashNext = 1;
+  // bytes hashNext = 1;
   if (this->hashnext().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashnext().data(), static_cast<int>(this->hashnext().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.DiskBlockIndex.hashNext");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       1, this->hashnext(), output);
   }
 
-  // string hashPrev = 2;
+  // bytes hashPrev = 2;
   if (this->hashprev().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashprev().data(), static_cast<int>(this->hashprev().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.DiskBlockIndex.hashPrev");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       2, this->hashprev(), output);
   }
 
@@ -575,13 +549,9 @@ void DiskBlockIndex::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(9, this->nnonce(), output);
   }
 
-  // string hashMerkleRoot = 10;
+  // bytes hashMerkleRoot = 10;
   if (this->hashmerkleroot().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashmerkleroot().data(), static_cast<int>(this->hashmerkleroot().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.DiskBlockIndex.hashMerkleRoot");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       10, this->hashmerkleroot(), output);
   }
 
@@ -599,25 +569,17 @@ void DiskBlockIndex::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string hashNext = 1;
+  // bytes hashNext = 1;
   if (this->hashnext().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashnext().data(), static_cast<int>(this->hashnext().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.DiskBlockIndex.hashNext");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         1, this->hashnext(), target);
   }
 
-  // string hashPrev = 2;
+  // bytes hashPrev = 2;
   if (this->hashprev().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashprev().data(), static_cast<int>(this->hashprev().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.DiskBlockIndex.hashPrev");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         2, this->hashprev(), target);
   }
 
@@ -656,14 +618,10 @@ void DiskBlockIndex::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(9, this->nnonce(), target);
   }
 
-  // string hashMerkleRoot = 10;
+  // bytes hashMerkleRoot = 10;
   if (this->hashmerkleroot().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashmerkleroot().data(), static_cast<int>(this->hashmerkleroot().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.DiskBlockIndex.hashMerkleRoot");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         10, this->hashmerkleroot(), target);
   }
 
@@ -688,24 +646,24 @@ size_t DiskBlockIndex::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string hashNext = 1;
+  // bytes hashNext = 1;
   if (this->hashnext().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashnext());
   }
 
-  // string hashPrev = 2;
+  // bytes hashPrev = 2;
   if (this->hashprev().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashprev());
   }
 
-  // string hashMerkleRoot = 10;
+  // bytes hashMerkleRoot = 10;
   if (this->hashmerkleroot().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashmerkleroot());
   }
 

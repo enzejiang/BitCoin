@@ -64,10 +64,10 @@ namespace Enze
 
     bool UnSeriaOutPoint(const OutPoint& cProtoc, COutPoint& cTargetData);
     bool SeriaOutPoint(const COutPoint& cSrcData, OutPoint& cProtoc);
-    bool UnSeriaTxIn(const TxIn& cProtoc, CTxIn& cTargetData);
+    bool UnSeriaTxIn( TxIn& cProtoc, CTxIn& cTargetData);
     bool SeriaTxIn(const CTxIn& cSrcData, TxIn& cProtoc);
 
-    bool UnSeriaTxOut(const TxOut& cProtoc, CTxOut& cTargetData);
+    bool UnSeriaTxOut( TxOut& cProtoc, CTxOut& cTargetData);
     bool SeriaTxOut(const CTxOut& cSrcData, TxOut& cProtoc);
 
     bool UnSeriaTransaction(const Transaction& cProtoc, CTransaction& cTargetData);

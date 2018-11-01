@@ -266,7 +266,7 @@ class PB_MessageData : public ::google::protobuf::Message /* @@protoc_insertion_
   const ::google::protobuf::RepeatedPtrField< ::Enze::Inventory >&
       vinv() const;
 
-  // string hashreply = 10;
+  // bytes hashreply = 10;
   void clear_hashreply();
   static const int kHashreplyFieldNumber = 10;
   const ::std::string& hashreply() const;
@@ -275,7 +275,7 @@ class PB_MessageData : public ::google::protobuf::Message /* @@protoc_insertion_
   void set_hashreply(::std::string&& value);
   #endif
   void set_hashreply(const char* value);
-  void set_hashreply(const char* value, size_t size);
+  void set_hashreply(const void* value, size_t size);
   ::std::string* mutable_hashreply();
   ::std::string* release_hashreply();
   void set_allocated_hashreply(::std::string* hashreply);
@@ -707,7 +707,7 @@ inline void PB_MessageData::set_allocated_cblock(::Enze::Block* cblock) {
   // @@protoc_insertion_point(field_set_allocated:Enze.PB_MessageData.cblock)
 }
 
-// string hashreply = 10;
+// bytes hashreply = 10;
 inline void PB_MessageData::clear_hashreply() {
   hashreply_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -734,7 +734,7 @@ inline void PB_MessageData::set_hashreply(const char* value) {
   hashreply_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.PB_MessageData.hashreply)
 }
-inline void PB_MessageData::set_hashreply(const char* value, size_t size) {
+inline void PB_MessageData::set_hashreply(const void* value, size_t size) {
   
   hashreply_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

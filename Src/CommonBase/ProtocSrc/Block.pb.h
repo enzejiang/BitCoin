@@ -169,7 +169,7 @@ class Block : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   const ::google::protobuf::RepeatedPtrField< ::Enze::Transaction >&
       vtrans() const;
 
-  // string hashPrevBlock = 2;
+  // bytes hashPrevBlock = 2;
   void clear_hashprevblock();
   static const int kHashPrevBlockFieldNumber = 2;
   const ::std::string& hashprevblock() const;
@@ -178,12 +178,12 @@ class Block : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   void set_hashprevblock(::std::string&& value);
   #endif
   void set_hashprevblock(const char* value);
-  void set_hashprevblock(const char* value, size_t size);
+  void set_hashprevblock(const void* value, size_t size);
   ::std::string* mutable_hashprevblock();
   ::std::string* release_hashprevblock();
   void set_allocated_hashprevblock(::std::string* hashprevblock);
 
-  // string hashMerkleRoot = 3;
+  // bytes hashMerkleRoot = 3;
   void clear_hashmerkleroot();
   static const int kHashMerkleRootFieldNumber = 3;
   const ::std::string& hashmerkleroot() const;
@@ -192,7 +192,7 @@ class Block : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   void set_hashmerkleroot(::std::string&& value);
   #endif
   void set_hashmerkleroot(const char* value);
-  void set_hashmerkleroot(const char* value, size_t size);
+  void set_hashmerkleroot(const void* value, size_t size);
   ::std::string* mutable_hashmerkleroot();
   ::std::string* release_hashmerkleroot();
   void set_allocated_hashmerkleroot(::std::string* hashmerkleroot);
@@ -261,7 +261,7 @@ inline void Block::set_ncurversion(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:Enze.Block.nCurVersion)
 }
 
-// string hashPrevBlock = 2;
+// bytes hashPrevBlock = 2;
 inline void Block::clear_hashprevblock() {
   hashprevblock_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -288,7 +288,7 @@ inline void Block::set_hashprevblock(const char* value) {
   hashprevblock_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.Block.hashPrevBlock)
 }
-inline void Block::set_hashprevblock(const char* value, size_t size) {
+inline void Block::set_hashprevblock(const void* value, size_t size) {
   
   hashprevblock_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
@@ -314,7 +314,7 @@ inline void Block::set_allocated_hashprevblock(::std::string* hashprevblock) {
   // @@protoc_insertion_point(field_set_allocated:Enze.Block.hashPrevBlock)
 }
 
-// string hashMerkleRoot = 3;
+// bytes hashMerkleRoot = 3;
 inline void Block::clear_hashmerkleroot() {
   hashmerkleroot_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -341,7 +341,7 @@ inline void Block::set_hashmerkleroot(const char* value) {
   hashmerkleroot_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.Block.hashMerkleRoot)
 }
-inline void Block::set_hashmerkleroot(const char* value, size_t size) {
+inline void Block::set_hashmerkleroot(const void* value, size_t size) {
   
   hashmerkleroot_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

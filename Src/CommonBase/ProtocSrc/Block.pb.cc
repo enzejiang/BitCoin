@@ -78,7 +78,7 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   false, InitDefaults_Block_2eproto, 
   "\n\013Block.proto\022\004Enze\032\021Transaction.proto\"\234"
   "\001\n\005Block\022\023\n\013nCurVersion\030\001 \001(\005\022\025\n\rhashPre"
-  "vBlock\030\002 \001(\t\022\026\n\016hashMerkleRoot\030\003 \001(\t\022\r\n\005"
+  "vBlock\030\002 \001(\014\022\026\n\016hashMerkleRoot\030\003 \001(\014\022\r\n\005"
   "uTime\030\004 \001(\r\022\r\n\005uBits\030\005 \001(\r\022\016\n\006uNonce\030\006 \001"
   "(\r\022!\n\006vTrans\030\007 \003(\0132\021.Enze.Transactionb\006p"
   "roto3"
@@ -210,36 +210,32 @@ const char* Block::_InternalParse(const char* begin, const char* end, void* obje
         msg->set_ncurversion(value);
         break;
       }
-      // string hashPrevBlock = 2;
+      // bytes hashPrevBlock = 2;
       case 2: {
         if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.Block.hashPrevBlock");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashprevblock();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
-      // string hashMerkleRoot = 3;
+      // bytes hashMerkleRoot = 3;
       case 3: {
         if (static_cast<::google::protobuf::uint8>(tag) != 26) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.Block.hashMerkleRoot");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashmerkleroot();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       // uint32 uTime = 4;
@@ -337,30 +333,22 @@ bool Block::MergePartialFromCodedStream(
         break;
       }
 
-      // string hashPrevBlock = 2;
+      // bytes hashPrevBlock = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashprevblock()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashprevblock().data(), static_cast<int>(this->hashprevblock().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.Block.hashPrevBlock"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // string hashMerkleRoot = 3;
+      // bytes hashMerkleRoot = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (26 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashmerkleroot()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashmerkleroot().data(), static_cast<int>(this->hashmerkleroot().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.Block.hashMerkleRoot"));
         } else {
           goto handle_unusual;
         }
@@ -449,23 +437,15 @@ void Block::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->ncurversion(), output);
   }
 
-  // string hashPrevBlock = 2;
+  // bytes hashPrevBlock = 2;
   if (this->hashprevblock().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashprevblock().data(), static_cast<int>(this->hashprevblock().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Block.hashPrevBlock");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       2, this->hashprevblock(), output);
   }
 
-  // string hashMerkleRoot = 3;
+  // bytes hashMerkleRoot = 3;
   if (this->hashmerkleroot().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashmerkleroot().data(), static_cast<int>(this->hashmerkleroot().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Block.hashMerkleRoot");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       3, this->hashmerkleroot(), output);
   }
 
@@ -512,25 +492,17 @@ void Block::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->ncurversion(), target);
   }
 
-  // string hashPrevBlock = 2;
+  // bytes hashPrevBlock = 2;
   if (this->hashprevblock().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashprevblock().data(), static_cast<int>(this->hashprevblock().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Block.hashPrevBlock");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         2, this->hashprevblock(), target);
   }
 
-  // string hashMerkleRoot = 3;
+  // bytes hashMerkleRoot = 3;
   if (this->hashmerkleroot().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashmerkleroot().data(), static_cast<int>(this->hashmerkleroot().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Block.hashMerkleRoot");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         3, this->hashmerkleroot(), target);
   }
 
@@ -589,17 +561,17 @@ size_t Block::ByteSizeLong() const {
     }
   }
 
-  // string hashPrevBlock = 2;
+  // bytes hashPrevBlock = 2;
   if (this->hashprevblock().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashprevblock());
   }
 
-  // string hashMerkleRoot = 3;
+  // bytes hashMerkleRoot = 3;
   if (this->hashmerkleroot().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashmerkleroot());
   }
 

@@ -105,7 +105,7 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   "ze.Transaction\022\035\n\007cReview\030\007 \001(\0132\014.Enze.R"
   "eview\022\033\n\006cOrder\030\010 \001(\0132\013.Enze.Order\022\033\n\006cb"
   "lock\030\t \001(\0132\013.Enze.Block\022\021\n\thashreply\030\n \001"
-  "(\t\"\303\001\n\tMesg_Kind\022\016\n\nMK_Version\020\000\022\013\n\007MK_A"
+  "(\014\"\303\001\n\tMesg_Kind\022\016\n\nMK_Version\020\000\022\013\n\007MK_A"
   "ddr\020\001\022\n\n\006MK_Inv\020\002\022\016\n\nMK_GetData\020\003\022\020\n\014MK_"
   "GetBlocks\020\004\022\t\n\005MK_Tx\020\005\022\r\n\tMK_Review\020\006\022\014\n"
   "\010MK_Block\020\007\022\016\n\nMK_GetAddr\020\010\022\021\n\rMK_CheckO"
@@ -548,20 +548,18 @@ const char* PB_MessageData::_InternalParse(const char* begin, const char* end, v
         ptr = newend;
         break;
       }
-      // string hashreply = 10;
+      // bytes hashreply = 10;
       case 10: {
         if (static_cast<::google::protobuf::uint8>(tag) != 82) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.PB_MessageData.hashreply");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashreply();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       default: {
@@ -700,15 +698,11 @@ bool PB_MessageData::MergePartialFromCodedStream(
         break;
       }
 
-      // string hashreply = 10;
+      // bytes hashreply = 10;
       case 10: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (82 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashreply()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashreply().data(), static_cast<int>(this->hashreply().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.PB_MessageData.hashreply"));
         } else {
           goto handle_unusual;
         }
@@ -802,13 +796,9 @@ void PB_MessageData::SerializeWithCachedSizes(
       9, HasBitSetters::cblock(this), output);
   }
 
-  // string hashreply = 10;
+  // bytes hashreply = 10;
   if (this->hashreply().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashreply().data(), static_cast<int>(this->hashreply().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.PB_MessageData.hashreply");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       10, this->hashreply(), output);
   }
 
@@ -890,14 +880,10 @@ void PB_MessageData::SerializeWithCachedSizes(
         9, HasBitSetters::cblock(this), deterministic, target);
   }
 
-  // string hashreply = 10;
+  // bytes hashreply = 10;
   if (this->hashreply().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashreply().data(), static_cast<int>(this->hashreply().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.PB_MessageData.hashreply");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         10, this->hashreply(), target);
   }
 
@@ -944,10 +930,10 @@ size_t PB_MessageData::ByteSizeLong() const {
     }
   }
 
-  // string hashreply = 10;
+  // bytes hashreply = 10;
   if (this->hashreply().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashreply());
   }
 

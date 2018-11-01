@@ -3,13 +3,13 @@ package Enze;
 
 message OutPoint
 {
-    string u256Hash = 1;//交易对应的hash
+    bytes u256Hash = 1;//交易对应的hash
     uint32 Index = 2;//交易对应的第几个输出
 }
 
 message TxIn
 {
     OutPoint cPrevOut = 1;// 前一个交易对应的输出（叫一个交易对应的hash值和对应的第几个输出）
-    string cScriptSig = 2;//输入脚本对应的签名
+    bytes cScriptSig = 2;//输入脚本对应的签名
     uint32 uSequence = 3;// 主要是用于判断相同输入的交易哪一个更新，值越大越新
 }

@@ -101,9 +101,9 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
 ::google::protobuf::internal::DescriptorTable descriptor_table_TxIn_2eproto = {
   false, InitDefaults_TxIn_2eproto, 
   "\n\nTxIn.proto\022\004Enze\"+\n\010OutPoint\022\020\n\010u256Ha"
-  "sh\030\001 \001(\t\022\r\n\005Index\030\002 \001(\r\"O\n\004TxIn\022 \n\010cPrev"
+  "sh\030\001 \001(\014\022\r\n\005Index\030\002 \001(\r\"O\n\004TxIn\022 \n\010cPrev"
   "Out\030\001 \001(\0132\016.Enze.OutPoint\022\022\n\ncScriptSig\030"
-  "\002 \001(\t\022\021\n\tuSequence\030\003 \001(\rb\006proto3"
+  "\002 \001(\014\022\021\n\tuSequence\030\003 \001(\rb\006proto3"
 ,
   "TxIn.proto", &assign_descriptors_table_TxIn_2eproto, 152,
 };
@@ -198,20 +198,18 @@ const char* OutPoint::_InternalParse(const char* begin, const char* end, void* o
     ptr = Varint::Parse32Inline(ptr, &tag);
     GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
-      // string u256Hash = 1;
+      // bytes u256Hash = 1;
       case 1: {
         if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.OutPoint.u256Hash");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_u256hash();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       // uint32 Index = 2;
@@ -258,15 +256,11 @@ bool OutPoint::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // string u256Hash = 1;
+      // bytes u256Hash = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_u256hash()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->u256hash().data(), static_cast<int>(this->u256hash().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.OutPoint.u256Hash"));
         } else {
           goto handle_unusual;
         }
@@ -313,13 +307,9 @@ void OutPoint::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string u256Hash = 1;
+  // bytes u256Hash = 1;
   if (this->u256hash().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->u256hash().data(), static_cast<int>(this->u256hash().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.OutPoint.u256Hash");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       1, this->u256hash(), output);
   }
 
@@ -342,14 +332,10 @@ void OutPoint::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string u256Hash = 1;
+  // bytes u256Hash = 1;
   if (this->u256hash().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->u256hash().data(), static_cast<int>(this->u256hash().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.OutPoint.u256Hash");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         1, this->u256hash(), target);
   }
 
@@ -379,10 +365,10 @@ size_t OutPoint::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string u256Hash = 1;
+  // bytes u256Hash = 1;
   if (this->u256hash().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->u256hash());
   }
 
@@ -579,20 +565,18 @@ const char* TxIn::_InternalParse(const char* begin, const char* end, void* objec
         ptr = newend;
         break;
       }
-      // string cScriptSig = 2;
+      // bytes cScriptSig = 2;
       case 2: {
         if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.TxIn.cScriptSig");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_cscriptsig();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       // uint32 uSequence = 3;
@@ -650,15 +634,11 @@ bool TxIn::MergePartialFromCodedStream(
         break;
       }
 
-      // string cScriptSig = 2;
+      // bytes cScriptSig = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_cscriptsig()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->cscriptsig().data(), static_cast<int>(this->cscriptsig().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.TxIn.cScriptSig"));
         } else {
           goto handle_unusual;
         }
@@ -711,13 +691,9 @@ void TxIn::SerializeWithCachedSizes(
       1, HasBitSetters::cprevout(this), output);
   }
 
-  // string cScriptSig = 2;
+  // bytes cScriptSig = 2;
   if (this->cscriptsig().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->cscriptsig().data(), static_cast<int>(this->cscriptsig().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.TxIn.cScriptSig");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       2, this->cscriptsig(), output);
   }
 
@@ -747,14 +723,10 @@ void TxIn::SerializeWithCachedSizes(
         1, HasBitSetters::cprevout(this), deterministic, target);
   }
 
-  // string cScriptSig = 2;
+  // bytes cScriptSig = 2;
   if (this->cscriptsig().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->cscriptsig().data(), static_cast<int>(this->cscriptsig().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.TxIn.cScriptSig");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         2, this->cscriptsig(), target);
   }
 
@@ -784,10 +756,10 @@ size_t TxIn::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string cScriptSig = 2;
+  // bytes cScriptSig = 2;
   if (this->cscriptsig().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->cscriptsig());
   }
 

@@ -156,7 +156,7 @@ class Inventory : public ::google::protobuf::Message /* @@protoc_insertion_point
 
   // accessors -------------------------------------------------------
 
-  // string hash = 2;
+  // bytes hash = 2;
   void clear_hash();
   static const int kHashFieldNumber = 2;
   const ::std::string& hash() const;
@@ -165,7 +165,7 @@ class Inventory : public ::google::protobuf::Message /* @@protoc_insertion_point
   void set_hash(::std::string&& value);
   #endif
   void set_hash(const char* value);
-  void set_hash(const char* value, size_t size);
+  void set_hash(const void* value, size_t size);
   ::std::string* mutable_hash();
   ::std::string* release_hash();
   void set_allocated_hash(::std::string* hash);
@@ -211,7 +211,7 @@ inline void Inventory::set_type(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:Enze.Inventory.type)
 }
 
-// string hash = 2;
+// bytes hash = 2;
 inline void Inventory::clear_hash() {
   hash_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -238,7 +238,7 @@ inline void Inventory::set_hash(const char* value) {
   hash_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.Inventory.hash)
 }
-inline void Inventory::set_hash(const char* value, size_t size) {
+inline void Inventory::set_hash(const void* value, size_t size) {
   
   hash_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

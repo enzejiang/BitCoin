@@ -217,14 +217,14 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   "t.proto\"\244\001\n\010MerkleTx\022\023\n\013nCurVersion\030\001 \001("
   "\005\022\021\n\tnLockTime\030\002 \001(\005\022\031\n\005vTxIn\030\003 \003(\0132\n.En"
   "ze.TxIn\022\033\n\006vTxOut\030\004 \003(\0132\013.Enze.TxOut\022\021\n\t"
-  "hashBlock\030\005 \001(\t\022\025\n\rvMerkleBranch\030\006 \003(\t\022\016"
+  "hashBlock\030\005 \001(\014\022\025\n\rvMerkleBranch\030\006 \003(\014\022\016"
   "\n\006nIndex\030\007 \001(\005\"m\n\tOrderForm\022/\n\010mapOrder\030"
   "\001 \003(\0132\035.Enze.OrderForm.MapOrderEntry\032/\n\r"
   "MapOrderEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001("
   "\t:\0028\001\"\241\003\n\010WalletTx\022\023\n\013nCurVersion\030\001 \001(\005\022"
   "\021\n\tnLockTime\030\002 \001(\005\022\031\n\005vTxIn\030\003 \003(\0132\n.Enze"
   ".TxIn\022\033\n\006vTxOut\030\004 \003(\0132\013.Enze.TxOut\022\021\n\tha"
-  "shBlock\030\005 \001(\t\022\025\n\rvMerkleBranch\030\006 \003(\t\022\016\n\006"
+  "shBlock\030\005 \001(\014\022\025\n\rvMerkleBranch\030\006 \003(\014\022\016\n\006"
   "nIndex\030\007 \001(\005\022\037\n\007vPrevTx\030\010 \003(\0132\016.Enze.Mer"
   "kleTx\022.\n\010mapValue\030\t \003(\0132\034.Enze.WalletTx."
   "MapValueEntry\022\"\n\tOrderList\030\n \003(\0132\017.Enze."
@@ -407,37 +407,33 @@ const char* MerkleTx::_InternalParse(const char* begin, const char* end, void* o
         } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 34 && (ptr += 1));
         break;
       }
-      // string hashBlock = 5;
+      // bytes hashBlock = 5;
       case 5: {
         if (static_cast<::google::protobuf::uint8>(tag) != 42) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.MerkleTx.hashBlock");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashblock();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
-      // repeated string vMerkleBranch = 6;
+      // repeated bytes vMerkleBranch = 6;
       case 6: {
         if (static_cast<::google::protobuf::uint8>(tag) != 50) goto handle_unusual;
         do {
           ptr = Varint::Parse32Inline(ptr, &size);
           GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-          ctx->extra_parse_data().SetFieldName("Enze.MerkleTx.vMerkleBranch");
-          parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+          parser_till_end = ::google::protobuf::internal::StringParser;
           ::std::string* str = msg->add_vmerklebranch();
           str->clear();
           object = str;
           if (size > end - ptr) goto len_delim_till_end;
-          auto newend = ptr + size;
-          if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+          str->append(ptr, size);
+          ptr += size;
           if (ptr >= end) break;
         } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 50 && (ptr += 1));
         break;
@@ -534,31 +530,22 @@ bool MerkleTx::MergePartialFromCodedStream(
         break;
       }
 
-      // string hashBlock = 5;
+      // bytes hashBlock = 5;
       case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (42 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashblock()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashblock().data(), static_cast<int>(this->hashblock().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.MerkleTx.hashBlock"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // repeated string vMerkleBranch = 6;
+      // repeated bytes vMerkleBranch = 6;
       case 6: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (50 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->add_vmerklebranch()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->vmerklebranch(this->vmerklebranch_size() - 1).data(),
-            static_cast<int>(this->vmerklebranch(this->vmerklebranch_size() - 1).length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.MerkleTx.vMerkleBranch"));
         } else {
           goto handle_unusual;
         }
@@ -633,23 +620,15 @@ void MerkleTx::SerializeWithCachedSizes(
       output);
   }
 
-  // string hashBlock = 5;
+  // bytes hashBlock = 5;
   if (this->hashblock().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashblock().data(), static_cast<int>(this->hashblock().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.MerkleTx.hashBlock");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       5, this->hashblock(), output);
   }
 
-  // repeated string vMerkleBranch = 6;
+  // repeated bytes vMerkleBranch = 6;
   for (int i = 0, n = this->vmerklebranch_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vmerklebranch(i).data(), static_cast<int>(this->vmerklebranch(i).length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.MerkleTx.vMerkleBranch");
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
       6, this->vmerklebranch(i), output);
   }
 
@@ -698,25 +677,17 @@ void MerkleTx::SerializeWithCachedSizes(
         4, this->vtxout(static_cast<int>(i)), deterministic, target);
   }
 
-  // string hashBlock = 5;
+  // bytes hashBlock = 5;
   if (this->hashblock().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashblock().data(), static_cast<int>(this->hashblock().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.MerkleTx.hashBlock");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         5, this->hashblock(), target);
   }
 
-  // repeated string vMerkleBranch = 6;
+  // repeated bytes vMerkleBranch = 6;
   for (int i = 0, n = this->vmerklebranch_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vmerklebranch(i).data(), static_cast<int>(this->vmerklebranch(i).length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.MerkleTx.vMerkleBranch");
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteStringToArray(6, this->vmerklebranch(i), target);
+      WriteBytesToArray(6, this->vmerklebranch(i), target);
   }
 
   // int32 nIndex = 7;
@@ -767,18 +738,18 @@ size_t MerkleTx::ByteSizeLong() const {
     }
   }
 
-  // repeated string vMerkleBranch = 6;
+  // repeated bytes vMerkleBranch = 6;
   total_size += 1 *
       ::google::protobuf::internal::FromIntSize(this->vmerklebranch_size());
   for (int i = 0, n = this->vmerklebranch_size(); i < n; i++) {
-    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+    total_size += ::google::protobuf::internal::WireFormatLite::BytesSize(
       this->vmerklebranch(i));
   }
 
-  // string hashBlock = 5;
+  // bytes hashBlock = 5;
   if (this->hashblock().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashblock());
   }
 
@@ -1529,37 +1500,33 @@ const char* WalletTx::_InternalParse(const char* begin, const char* end, void* o
         } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 34 && (ptr += 1));
         break;
       }
-      // string hashBlock = 5;
+      // bytes hashBlock = 5;
       case 5: {
         if (static_cast<::google::protobuf::uint8>(tag) != 42) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.WalletTx.hashBlock");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashblock();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
-      // repeated string vMerkleBranch = 6;
+      // repeated bytes vMerkleBranch = 6;
       case 6: {
         if (static_cast<::google::protobuf::uint8>(tag) != 50) goto handle_unusual;
         do {
           ptr = Varint::Parse32Inline(ptr, &size);
           GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-          ctx->extra_parse_data().SetFieldName("Enze.WalletTx.vMerkleBranch");
-          parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+          parser_till_end = ::google::protobuf::internal::StringParser;
           ::std::string* str = msg->add_vmerklebranch();
           str->clear();
           object = str;
           if (size > end - ptr) goto len_delim_till_end;
-          auto newend = ptr + size;
-          if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+          str->append(ptr, size);
+          ptr += size;
           if (ptr >= end) break;
         } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 50 && (ptr += 1));
         break;
@@ -1751,31 +1718,22 @@ bool WalletTx::MergePartialFromCodedStream(
         break;
       }
 
-      // string hashBlock = 5;
+      // bytes hashBlock = 5;
       case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (42 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashblock()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashblock().data(), static_cast<int>(this->hashblock().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.WalletTx.hashBlock"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // repeated string vMerkleBranch = 6;
+      // repeated bytes vMerkleBranch = 6;
       case 6: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (50 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->add_vmerklebranch()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->vmerklebranch(this->vmerklebranch_size() - 1).data(),
-            static_cast<int>(this->vmerklebranch(this->vmerklebranch_size() - 1).length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.WalletTx.vMerkleBranch"));
         } else {
           goto handle_unusual;
         }
@@ -1950,23 +1908,15 @@ void WalletTx::SerializeWithCachedSizes(
       output);
   }
 
-  // string hashBlock = 5;
+  // bytes hashBlock = 5;
   if (this->hashblock().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashblock().data(), static_cast<int>(this->hashblock().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.WalletTx.hashBlock");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       5, this->hashblock(), output);
   }
 
-  // repeated string vMerkleBranch = 6;
+  // repeated bytes vMerkleBranch = 6;
   for (int i = 0, n = this->vmerklebranch_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vmerklebranch(i).data(), static_cast<int>(this->vmerklebranch(i).length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.WalletTx.vMerkleBranch");
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
       6, this->vmerklebranch(i), output);
   }
 
@@ -2102,25 +2052,17 @@ void WalletTx::SerializeWithCachedSizes(
         4, this->vtxout(static_cast<int>(i)), deterministic, target);
   }
 
-  // string hashBlock = 5;
+  // bytes hashBlock = 5;
   if (this->hashblock().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashblock().data(), static_cast<int>(this->hashblock().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.WalletTx.hashBlock");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         5, this->hashblock(), target);
   }
 
-  // repeated string vMerkleBranch = 6;
+  // repeated bytes vMerkleBranch = 6;
   for (int i = 0, n = this->vmerklebranch_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vmerklebranch(i).data(), static_cast<int>(this->vmerklebranch(i).length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.WalletTx.vMerkleBranch");
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteStringToArray(6, this->vmerklebranch(i), target);
+      WriteBytesToArray(6, this->vmerklebranch(i), target);
   }
 
   // int32 nIndex = 7;
@@ -2256,11 +2198,11 @@ size_t WalletTx::ByteSizeLong() const {
     }
   }
 
-  // repeated string vMerkleBranch = 6;
+  // repeated bytes vMerkleBranch = 6;
   total_size += 1 *
       ::google::protobuf::internal::FromIntSize(this->vmerklebranch_size());
   for (int i = 0, n = this->vmerklebranch_size(); i < n; i++) {
-    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+    total_size += ::google::protobuf::internal::WireFormatLite::BytesSize(
       this->vmerklebranch(i));
   }
 
@@ -2300,10 +2242,10 @@ size_t WalletTx::ByteSizeLong() const {
     }
   }
 
-  // string hashBlock = 5;
+  // bytes hashBlock = 5;
   if (this->hashblock().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashblock());
   }
 

@@ -355,10 +355,14 @@ bool CTransaction::IsNull() const
 
 uint256 CTransaction::GetHash() const
 {
+  //  printf("CTransaction::GetHash--TxInSz[%d]--TxOutSz[%d]\n", m_vTxIn.size(), m_vTxOut.size());
+  //  printf("CTransaction::GetHash--scriptsz[%d]--TxOutSz[%d]\n", m_vTxIn[0].m_cScriptSig.size(), m_vTxOut.size());
+
     Transaction cProtoc;
     SeriaTransaction(*this, cProtoc);
     string strSerial;
     cProtoc.SerializePartialToString(&strSerial);
+    printf("CTransaction::GetHash--strSize[%d], protoSz[%d]\n", strSerial.length(), cProtoc.ByteSize());
     return Hash(strSerial.begin(), strSerial.end());
    // return SerializeHash(*this);
 }
@@ -429,7 +433,7 @@ bool CTransaction::CheckTransaction() const
 
     if (IsCoinBase())
     {
-        if (m_vTxIn[0].m_cScriptSig.size() < 2 || m_vTxIn[0].m_cScriptSig.size() > 100)
+        if (m_vTxIn[0].m_cScriptSig.size() < 2 || m_vTxIn[0].m_cScriptSig.size() > 1000)
             return error("CTransaction::CheckTransaction() : coinbase script size");
     }
     else

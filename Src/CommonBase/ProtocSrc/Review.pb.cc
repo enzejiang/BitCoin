@@ -106,9 +106,9 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
 ::google::protobuf::internal::DescriptorTable descriptor_table_Review_2eproto = {
   false, InitDefaults_Review_2eproto, 
   "\n\014Review.proto\022\004Enze\"\317\001\n\006Review\022\020\n\010nVers"
-  "ion\030\001 \001(\005\022\016\n\006hashTo\030\002 \001(\t\022,\n\010mapValue\030\003 "
+  "ion\030\001 \001(\005\022\016\n\006hashTo\030\002 \001(\014\022,\n\010mapValue\030\003 "
   "\003(\0132\032.Enze.Review.MapValueEntry\022\025\n\rvchPu"
-  "bKeyFrom\030\004 \001(\t\022\016\n\006vchSig\030\005 \001(\t\022\r\n\005nTime\030"
+  "bKeyFrom\030\004 \001(\014\022\016\n\006vchSig\030\005 \001(\014\022\r\n\005nTime\030"
   "\006 \001(\r\022\016\n\006nAtoms\030\007 \001(\005\032/\n\rMapValueEntry\022\013"
   "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001b\006proto3"
 ,
@@ -283,20 +283,18 @@ const char* Review::_InternalParse(const char* begin, const char* end, void* obj
         msg->set_nversion(value);
         break;
       }
-      // string hashTo = 2;
+      // bytes hashTo = 2;
       case 2: {
         if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.Review.hashTo");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashto();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       // map<string, string> mapValue = 3;
@@ -318,36 +316,32 @@ const char* Review::_InternalParse(const char* begin, const char* end, void* obj
         } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 26 && (ptr += 1));
         break;
       }
-      // string vchPubKeyFrom = 4;
+      // bytes vchPubKeyFrom = 4;
       case 4: {
         if (static_cast<::google::protobuf::uint8>(tag) != 34) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.Review.vchPubKeyFrom");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_vchpubkeyfrom();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
-      // string vchSig = 5;
+      // bytes vchSig = 5;
       case 5: {
         if (static_cast<::google::protobuf::uint8>(tag) != 42) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.Review.vchSig");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_vchsig();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       // uint32 nTime = 6;
@@ -417,15 +411,11 @@ bool Review::MergePartialFromCodedStream(
         break;
       }
 
-      // string hashTo = 2;
+      // bytes hashTo = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashto()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashto().data(), static_cast<int>(this->hashto().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.Review.hashTo"));
         } else {
           goto handle_unusual;
         }
@@ -458,30 +448,22 @@ bool Review::MergePartialFromCodedStream(
         break;
       }
 
-      // string vchPubKeyFrom = 4;
+      // bytes vchPubKeyFrom = 4;
       case 4: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (34 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_vchpubkeyfrom()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->vchpubkeyfrom().data(), static_cast<int>(this->vchpubkeyfrom().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.Review.vchPubKeyFrom"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // string vchSig = 5;
+      // bytes vchSig = 5;
       case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (42 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_vchsig()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->vchsig().data(), static_cast<int>(this->vchsig().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.Review.vchSig"));
         } else {
           goto handle_unusual;
         }
@@ -546,13 +528,9 @@ void Review::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->nversion(), output);
   }
 
-  // string hashTo = 2;
+  // bytes hashTo = 2;
   if (this->hashto().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashto().data(), static_cast<int>(this->hashto().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Review.hashTo");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       2, this->hashto(), output);
   }
 
@@ -605,23 +583,15 @@ void Review::SerializeWithCachedSizes(
     }
   }
 
-  // string vchPubKeyFrom = 4;
+  // bytes vchPubKeyFrom = 4;
   if (this->vchpubkeyfrom().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vchpubkeyfrom().data(), static_cast<int>(this->vchpubkeyfrom().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Review.vchPubKeyFrom");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       4, this->vchpubkeyfrom(), output);
   }
 
-  // string vchSig = 5;
+  // bytes vchSig = 5;
   if (this->vchsig().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vchsig().data(), static_cast<int>(this->vchsig().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Review.vchSig");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       5, this->vchsig(), output);
   }
 
@@ -654,14 +624,10 @@ void Review::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->nversion(), target);
   }
 
-  // string hashTo = 2;
+  // bytes hashTo = 2;
   if (this->hashto().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashto().data(), static_cast<int>(this->hashto().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Review.hashTo");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         2, this->hashto(), target);
   }
 
@@ -714,25 +680,17 @@ void Review::SerializeWithCachedSizes(
     }
   }
 
-  // string vchPubKeyFrom = 4;
+  // bytes vchPubKeyFrom = 4;
   if (this->vchpubkeyfrom().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vchpubkeyfrom().data(), static_cast<int>(this->vchpubkeyfrom().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Review.vchPubKeyFrom");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         4, this->vchpubkeyfrom(), target);
   }
 
-  // string vchSig = 5;
+  // bytes vchSig = 5;
   if (this->vchsig().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vchsig().data(), static_cast<int>(this->vchsig().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Review.vchSig");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         5, this->vchsig(), target);
   }
 
@@ -781,24 +739,24 @@ size_t Review::ByteSizeLong() const {
     }
   }
 
-  // string hashTo = 2;
+  // bytes hashTo = 2;
   if (this->hashto().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashto());
   }
 
-  // string vchPubKeyFrom = 4;
+  // bytes vchPubKeyFrom = 4;
   if (this->vchpubkeyfrom().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->vchpubkeyfrom());
   }
 
-  // string vchSig = 5;
+  // bytes vchSig = 5;
   if (this->vchsig().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->vchsig());
   }
 

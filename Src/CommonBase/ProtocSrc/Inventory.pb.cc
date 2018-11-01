@@ -70,7 +70,7 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
 ::google::protobuf::internal::DescriptorTable descriptor_table_Inventory_2eproto = {
   false, InitDefaults_Inventory_2eproto, 
   "\n\017Inventory.proto\022\004Enze\"\'\n\tInventory\022\014\n\004"
-  "type\030\001 \001(\005\022\014\n\004hash\030\002 \001(\tb\006proto3"
+  "type\030\001 \001(\005\022\014\n\004hash\030\002 \001(\014b\006proto3"
 ,
   "Inventory.proto", &assign_descriptors_table_Inventory_2eproto, 72,
 };
@@ -175,20 +175,18 @@ const char* Inventory::_InternalParse(const char* begin, const char* end, void* 
         msg->set_type(value);
         break;
       }
-      // string hash = 2;
+      // bytes hash = 2;
       case 2: {
         if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.Inventory.hash");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hash();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       default: {
@@ -238,15 +236,11 @@ bool Inventory::MergePartialFromCodedStream(
         break;
       }
 
-      // string hash = 2;
+      // bytes hash = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hash()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hash().data(), static_cast<int>(this->hash().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.Inventory.hash"));
         } else {
           goto handle_unusual;
         }
@@ -285,13 +279,9 @@ void Inventory::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->type(), output);
   }
 
-  // string hash = 2;
+  // bytes hash = 2;
   if (this->hash().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hash().data(), static_cast<int>(this->hash().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Inventory.hash");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       2, this->hash(), output);
   }
 
@@ -314,14 +304,10 @@ void Inventory::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->type(), target);
   }
 
-  // string hash = 2;
+  // bytes hash = 2;
   if (this->hash().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hash().data(), static_cast<int>(this->hash().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.Inventory.hash");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         2, this->hash(), target);
   }
 
@@ -346,10 +332,10 @@ size_t Inventory::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string hash = 2;
+  // bytes hash = 2;
   if (this->hash().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hash());
   }
 

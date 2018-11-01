@@ -100,8 +100,8 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   false, InitDefaults_GetBlocks_2eproto, 
   "\n\017GetBlocks.proto\022\004Enze\"k\n\tGetBlocks\022-\n\007"
   "locator\030\001 \001(\0132\034.Enze.GetBlocks.BlockLoca"
-  "tor\022\020\n\010hashStop\030\002 \001(\t\032\035\n\014BlockLocator\022\r\n"
-  "\005vHave\030\001 \003(\tb\006proto3"
+  "tor\022\020\n\010hashStop\030\002 \001(\014\032\035\n\014BlockLocator\022\r\n"
+  "\005vHave\030\001 \003(\014b\006proto3"
 ,
   "GetBlocks.proto", &assign_descriptors_table_GetBlocks_2eproto, 140,
 };
@@ -187,21 +187,19 @@ const char* GetBlocks_BlockLocator::_InternalParse(const char* begin, const char
     ptr = Varint::Parse32Inline(ptr, &tag);
     GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
-      // repeated string vHave = 1;
+      // repeated bytes vHave = 1;
       case 1: {
         if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
         do {
           ptr = Varint::Parse32Inline(ptr, &size);
           GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-          ctx->extra_parse_data().SetFieldName("Enze.GetBlocks.BlockLocator.vHave");
-          parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+          parser_till_end = ::google::protobuf::internal::StringParser;
           ::std::string* str = msg->add_vhave();
           str->clear();
           object = str;
           if (size > end - ptr) goto len_delim_till_end;
-          auto newend = ptr + size;
-          if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+          str->append(ptr, size);
+          ptr += size;
           if (ptr >= end) break;
         } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 10 && (ptr += 1));
         break;
@@ -240,16 +238,11 @@ bool GetBlocks_BlockLocator::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated string vHave = 1;
+      // repeated bytes vHave = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->add_vhave()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->vhave(this->vhave_size() - 1).data(),
-            static_cast<int>(this->vhave(this->vhave_size() - 1).length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.GetBlocks.BlockLocator.vHave"));
         } else {
           goto handle_unusual;
         }
@@ -283,13 +276,9 @@ void GetBlocks_BlockLocator::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated string vHave = 1;
+  // repeated bytes vHave = 1;
   for (int i = 0, n = this->vhave_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vhave(i).data(), static_cast<int>(this->vhave(i).length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.GetBlocks.BlockLocator.vHave");
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
       1, this->vhave(i), output);
   }
 
@@ -307,14 +296,10 @@ void GetBlocks_BlockLocator::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated string vHave = 1;
+  // repeated bytes vHave = 1;
   for (int i = 0, n = this->vhave_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->vhave(i).data(), static_cast<int>(this->vhave(i).length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.GetBlocks.BlockLocator.vHave");
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteStringToArray(1, this->vhave(i), target);
+      WriteBytesToArray(1, this->vhave(i), target);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -338,11 +323,11 @@ size_t GetBlocks_BlockLocator::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated string vHave = 1;
+  // repeated bytes vHave = 1;
   total_size += 1 *
       ::google::protobuf::internal::FromIntSize(this->vhave_size());
   for (int i = 0, n = this->vhave_size(); i < n; i++) {
-    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+    total_size += ::google::protobuf::internal::WireFormatLite::BytesSize(
       this->vhave(i));
   }
 
@@ -519,20 +504,18 @@ const char* GetBlocks::_InternalParse(const char* begin, const char* end, void* 
         ptr = newend;
         break;
       }
-      // string hashStop = 2;
+      // bytes hashStop = 2;
       case 2: {
         if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
         ptr = Varint::Parse32Inline(ptr, &size);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("Enze.GetBlocks.hashStop");
-        parser_till_end = ::google::protobuf::internal::StringParserUTF8;
+        parser_till_end = ::google::protobuf::internal::StringParser;
         ::std::string* str = msg->mutable_hashstop();
         str->clear();
         object = str;
         if (size > end - ptr) goto len_delim_till_end;
-        auto newend = ptr + size;
-        if (size) ptr = parser_till_end(ptr, newend, object, ctx);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr == newend);
+        str->append(ptr, size);
+        ptr += size;
         break;
       }
       default: {
@@ -580,15 +563,11 @@ bool GetBlocks::MergePartialFromCodedStream(
         break;
       }
 
-      // string hashStop = 2;
+      // bytes hashStop = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_hashstop()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->hashstop().data(), static_cast<int>(this->hashstop().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "Enze.GetBlocks.hashStop"));
         } else {
           goto handle_unusual;
         }
@@ -628,13 +607,9 @@ void GetBlocks::SerializeWithCachedSizes(
       1, HasBitSetters::locator(this), output);
   }
 
-  // string hashStop = 2;
+  // bytes hashStop = 2;
   if (this->hashstop().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashstop().data(), static_cast<int>(this->hashstop().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.GetBlocks.hashStop");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
       2, this->hashstop(), output);
   }
 
@@ -659,14 +634,10 @@ void GetBlocks::SerializeWithCachedSizes(
         1, HasBitSetters::locator(this), deterministic, target);
   }
 
-  // string hashStop = 2;
+  // bytes hashStop = 2;
   if (this->hashstop().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->hashstop().data(), static_cast<int>(this->hashstop().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "Enze.GetBlocks.hashStop");
     target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         2, this->hashstop(), target);
   }
 
@@ -691,10 +662,10 @@ size_t GetBlocks::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string hashStop = 2;
+  // bytes hashStop = 2;
   if (this->hashstop().size() > 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->hashstop());
   }
 

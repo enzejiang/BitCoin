@@ -3,8 +3,8 @@ package Enze;
 
 message DiskBlockIndex
 {
-    string hashNext = 1;
-    string hashPrev = 2;
+    bytes hashNext = 1;
+    bytes hashPrev = 2;
     uint32 nFile    = 3;
     uint32 nBlockpos = 4;
     uint32 nHeight  = 5;
@@ -12,5 +12,5 @@ message DiskBlockIndex
     uint32 nTime    =7;
     uint32 nBit     = 8;
     uint32 nNonce   = 9;
-    string hashMerkleRoot = 10;
+    bytes hashMerkleRoot = 10;
 }

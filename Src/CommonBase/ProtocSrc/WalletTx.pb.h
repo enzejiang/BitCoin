@@ -201,7 +201,7 @@ class MerkleTx : public ::google::protobuf::Message /* @@protoc_insertion_point(
   const ::google::protobuf::RepeatedPtrField< ::Enze::TxOut >&
       vtxout() const;
 
-  // repeated string vMerkleBranch = 6;
+  // repeated bytes vMerkleBranch = 6;
   int vmerklebranch_size() const;
   void clear_vmerklebranch();
   static const int kVMerkleBranchFieldNumber = 6;
@@ -212,18 +212,18 @@ class MerkleTx : public ::google::protobuf::Message /* @@protoc_insertion_point(
   void set_vmerklebranch(int index, ::std::string&& value);
   #endif
   void set_vmerklebranch(int index, const char* value);
-  void set_vmerklebranch(int index, const char* value, size_t size);
+  void set_vmerklebranch(int index, const void* value, size_t size);
   ::std::string* add_vmerklebranch();
   void add_vmerklebranch(const ::std::string& value);
   #if LANG_CXX11
   void add_vmerklebranch(::std::string&& value);
   #endif
   void add_vmerklebranch(const char* value);
-  void add_vmerklebranch(const char* value, size_t size);
+  void add_vmerklebranch(const void* value, size_t size);
   const ::google::protobuf::RepeatedPtrField<::std::string>& vmerklebranch() const;
   ::google::protobuf::RepeatedPtrField<::std::string>* mutable_vmerklebranch();
 
-  // string hashBlock = 5;
+  // bytes hashBlock = 5;
   void clear_hashblock();
   static const int kHashBlockFieldNumber = 5;
   const ::std::string& hashblock() const;
@@ -232,7 +232,7 @@ class MerkleTx : public ::google::protobuf::Message /* @@protoc_insertion_point(
   void set_hashblock(::std::string&& value);
   #endif
   void set_hashblock(const char* value);
-  void set_hashblock(const char* value, size_t size);
+  void set_hashblock(const void* value, size_t size);
   ::std::string* mutable_hashblock();
   ::std::string* release_hashblock();
   void set_allocated_hashblock(::std::string* hashblock);
@@ -559,7 +559,7 @@ class WalletTx : public ::google::protobuf::Message /* @@protoc_insertion_point(
   const ::google::protobuf::RepeatedPtrField< ::Enze::TxOut >&
       vtxout() const;
 
-  // repeated string vMerkleBranch = 6;
+  // repeated bytes vMerkleBranch = 6;
   int vmerklebranch_size() const;
   void clear_vmerklebranch();
   static const int kVMerkleBranchFieldNumber = 6;
@@ -570,14 +570,14 @@ class WalletTx : public ::google::protobuf::Message /* @@protoc_insertion_point(
   void set_vmerklebranch(int index, ::std::string&& value);
   #endif
   void set_vmerklebranch(int index, const char* value);
-  void set_vmerklebranch(int index, const char* value, size_t size);
+  void set_vmerklebranch(int index, const void* value, size_t size);
   ::std::string* add_vmerklebranch();
   void add_vmerklebranch(const ::std::string& value);
   #if LANG_CXX11
   void add_vmerklebranch(::std::string&& value);
   #endif
   void add_vmerklebranch(const char* value);
-  void add_vmerklebranch(const char* value, size_t size);
+  void add_vmerklebranch(const void* value, size_t size);
   const ::google::protobuf::RepeatedPtrField<::std::string>& vmerklebranch() const;
   ::google::protobuf::RepeatedPtrField<::std::string>* mutable_vmerklebranch();
 
@@ -614,7 +614,7 @@ class WalletTx : public ::google::protobuf::Message /* @@protoc_insertion_point(
   const ::google::protobuf::RepeatedPtrField< ::Enze::OrderForm >&
       orderlist() const;
 
-  // string hashBlock = 5;
+  // bytes hashBlock = 5;
   void clear_hashblock();
   static const int kHashBlockFieldNumber = 5;
   const ::std::string& hashblock() const;
@@ -623,7 +623,7 @@ class WalletTx : public ::google::protobuf::Message /* @@protoc_insertion_point(
   void set_hashblock(::std::string&& value);
   #endif
   void set_hashblock(const char* value);
-  void set_hashblock(const char* value, size_t size);
+  void set_hashblock(const void* value, size_t size);
   ::std::string* mutable_hashblock();
   ::std::string* release_hashblock();
   void set_allocated_hashblock(::std::string* hashblock);
@@ -790,7 +790,7 @@ MerkleTx::vtxout() const {
   return vtxout_;
 }
 
-// string hashBlock = 5;
+// bytes hashBlock = 5;
 inline void MerkleTx::clear_hashblock() {
   hashblock_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -817,7 +817,7 @@ inline void MerkleTx::set_hashblock(const char* value) {
   hashblock_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.MerkleTx.hashBlock)
 }
-inline void MerkleTx::set_hashblock(const char* value, size_t size) {
+inline void MerkleTx::set_hashblock(const void* value, size_t size) {
   
   hashblock_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
@@ -843,7 +843,7 @@ inline void MerkleTx::set_allocated_hashblock(::std::string* hashblock) {
   // @@protoc_insertion_point(field_set_allocated:Enze.MerkleTx.hashBlock)
 }
 
-// repeated string vMerkleBranch = 6;
+// repeated bytes vMerkleBranch = 6;
 inline int MerkleTx::vmerklebranch_size() const {
   return vmerklebranch_.size();
 }
@@ -873,7 +873,7 @@ inline void MerkleTx::set_vmerklebranch(int index, const char* value) {
   vmerklebranch_.Mutable(index)->assign(value);
   // @@protoc_insertion_point(field_set_char:Enze.MerkleTx.vMerkleBranch)
 }
-inline void MerkleTx::set_vmerklebranch(int index, const char* value, size_t size) {
+inline void MerkleTx::set_vmerklebranch(int index, const void* value, size_t size) {
   vmerklebranch_.Mutable(index)->assign(
     reinterpret_cast<const char*>(value), size);
   // @@protoc_insertion_point(field_set_pointer:Enze.MerkleTx.vMerkleBranch)
@@ -897,7 +897,7 @@ inline void MerkleTx::add_vmerklebranch(const char* value) {
   vmerklebranch_.Add()->assign(value);
   // @@protoc_insertion_point(field_add_char:Enze.MerkleTx.vMerkleBranch)
 }
-inline void MerkleTx::add_vmerklebranch(const char* value, size_t size) {
+inline void MerkleTx::add_vmerklebranch(const void* value, size_t size) {
   vmerklebranch_.Add()->assign(reinterpret_cast<const char*>(value), size);
   // @@protoc_insertion_point(field_add_pointer:Enze.MerkleTx.vMerkleBranch)
 }
@@ -1038,7 +1038,7 @@ WalletTx::vtxout() const {
   return vtxout_;
 }
 
-// string hashBlock = 5;
+// bytes hashBlock = 5;
 inline void WalletTx::clear_hashblock() {
   hashblock_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -1065,7 +1065,7 @@ inline void WalletTx::set_hashblock(const char* value) {
   hashblock_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.WalletTx.hashBlock)
 }
-inline void WalletTx::set_hashblock(const char* value, size_t size) {
+inline void WalletTx::set_hashblock(const void* value, size_t size) {
   
   hashblock_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
@@ -1091,7 +1091,7 @@ inline void WalletTx::set_allocated_hashblock(::std::string* hashblock) {
   // @@protoc_insertion_point(field_set_allocated:Enze.WalletTx.hashBlock)
 }
 
-// repeated string vMerkleBranch = 6;
+// repeated bytes vMerkleBranch = 6;
 inline int WalletTx::vmerklebranch_size() const {
   return vmerklebranch_.size();
 }
@@ -1121,7 +1121,7 @@ inline void WalletTx::set_vmerklebranch(int index, const char* value) {
   vmerklebranch_.Mutable(index)->assign(value);
   // @@protoc_insertion_point(field_set_char:Enze.WalletTx.vMerkleBranch)
 }
-inline void WalletTx::set_vmerklebranch(int index, const char* value, size_t size) {
+inline void WalletTx::set_vmerklebranch(int index, const void* value, size_t size) {
   vmerklebranch_.Mutable(index)->assign(
     reinterpret_cast<const char*>(value), size);
   // @@protoc_insertion_point(field_set_pointer:Enze.WalletTx.vMerkleBranch)
@@ -1145,7 +1145,7 @@ inline void WalletTx::add_vmerklebranch(const char* value) {
   vmerklebranch_.Add()->assign(value);
   // @@protoc_insertion_point(field_add_char:Enze.WalletTx.vMerkleBranch)
 }
-inline void WalletTx::add_vmerklebranch(const char* value, size_t size) {
+inline void WalletTx::add_vmerklebranch(const void* value, size_t size) {
   vmerklebranch_.Add()->assign(reinterpret_cast<const char*>(value), size);
   // @@protoc_insertion_point(field_add_pointer:Enze.WalletTx.vMerkleBranch)
 }

@@ -160,7 +160,7 @@ class OutPoint : public ::google::protobuf::Message /* @@protoc_insertion_point(
 
   // accessors -------------------------------------------------------
 
-  // string u256Hash = 1;
+  // bytes u256Hash = 1;
   void clear_u256hash();
   static const int kU256HashFieldNumber = 1;
   const ::std::string& u256hash() const;
@@ -169,7 +169,7 @@ class OutPoint : public ::google::protobuf::Message /* @@protoc_insertion_point(
   void set_u256hash(::std::string&& value);
   #endif
   void set_u256hash(const char* value);
-  void set_u256hash(const char* value, size_t size);
+  void set_u256hash(const void* value, size_t size);
   ::std::string* mutable_u256hash();
   ::std::string* release_u256hash();
   void set_allocated_u256hash(::std::string* u256hash);
@@ -286,7 +286,7 @@ class TxIn : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
 
   // accessors -------------------------------------------------------
 
-  // string cScriptSig = 2;
+  // bytes cScriptSig = 2;
   void clear_cscriptsig();
   static const int kCScriptSigFieldNumber = 2;
   const ::std::string& cscriptsig() const;
@@ -295,7 +295,7 @@ class TxIn : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   void set_cscriptsig(::std::string&& value);
   #endif
   void set_cscriptsig(const char* value);
-  void set_cscriptsig(const char* value, size_t size);
+  void set_cscriptsig(const void* value, size_t size);
   ::std::string* mutable_cscriptsig();
   ::std::string* release_cscriptsig();
   void set_allocated_cscriptsig(::std::string* cscriptsig);
@@ -337,7 +337,7 @@ class TxIn : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
 #endif  // __GNUC__
 // OutPoint
 
-// string u256Hash = 1;
+// bytes u256Hash = 1;
 inline void OutPoint::clear_u256hash() {
   u256hash_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -364,7 +364,7 @@ inline void OutPoint::set_u256hash(const char* value) {
   u256hash_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.OutPoint.u256Hash)
 }
-inline void OutPoint::set_u256hash(const char* value, size_t size) {
+inline void OutPoint::set_u256hash(const void* value, size_t size) {
   
   u256hash_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
@@ -459,7 +459,7 @@ inline void TxIn::set_allocated_cprevout(::Enze::OutPoint* cprevout) {
   // @@protoc_insertion_point(field_set_allocated:Enze.TxIn.cPrevOut)
 }
 
-// string cScriptSig = 2;
+// bytes cScriptSig = 2;
 inline void TxIn::clear_cscriptsig() {
   cscriptsig_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -486,7 +486,7 @@ inline void TxIn::set_cscriptsig(const char* value) {
   cscriptsig_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.TxIn.cScriptSig)
 }
-inline void TxIn::set_cscriptsig(const char* value, size_t size) {
+inline void TxIn::set_cscriptsig(const void* value, size_t size) {
   
   cscriptsig_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

@@ -197,7 +197,7 @@ class Review : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   ::google::protobuf::Map< ::std::string, ::std::string >*
       mutable_mapvalue();
 
-  // string hashTo = 2;
+  // bytes hashTo = 2;
   void clear_hashto();
   static const int kHashToFieldNumber = 2;
   const ::std::string& hashto() const;
@@ -206,12 +206,12 @@ class Review : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   void set_hashto(::std::string&& value);
   #endif
   void set_hashto(const char* value);
-  void set_hashto(const char* value, size_t size);
+  void set_hashto(const void* value, size_t size);
   ::std::string* mutable_hashto();
   ::std::string* release_hashto();
   void set_allocated_hashto(::std::string* hashto);
 
-  // string vchPubKeyFrom = 4;
+  // bytes vchPubKeyFrom = 4;
   void clear_vchpubkeyfrom();
   static const int kVchPubKeyFromFieldNumber = 4;
   const ::std::string& vchpubkeyfrom() const;
@@ -220,12 +220,12 @@ class Review : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   void set_vchpubkeyfrom(::std::string&& value);
   #endif
   void set_vchpubkeyfrom(const char* value);
-  void set_vchpubkeyfrom(const char* value, size_t size);
+  void set_vchpubkeyfrom(const void* value, size_t size);
   ::std::string* mutable_vchpubkeyfrom();
   ::std::string* release_vchpubkeyfrom();
   void set_allocated_vchpubkeyfrom(::std::string* vchpubkeyfrom);
 
-  // string vchSig = 5;
+  // bytes vchSig = 5;
   void clear_vchsig();
   static const int kVchSigFieldNumber = 5;
   const ::std::string& vchsig() const;
@@ -234,7 +234,7 @@ class Review : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   void set_vchsig(::std::string&& value);
   #endif
   void set_vchsig(const char* value);
-  void set_vchsig(const char* value, size_t size);
+  void set_vchsig(const void* value, size_t size);
   ::std::string* mutable_vchsig();
   ::std::string* release_vchsig();
   void set_allocated_vchsig(::std::string* vchsig);
@@ -304,7 +304,7 @@ inline void Review::set_nversion(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:Enze.Review.nVersion)
 }
 
-// string hashTo = 2;
+// bytes hashTo = 2;
 inline void Review::clear_hashto() {
   hashto_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -331,7 +331,7 @@ inline void Review::set_hashto(const char* value) {
   hashto_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.Review.hashTo)
 }
-inline void Review::set_hashto(const char* value, size_t size) {
+inline void Review::set_hashto(const void* value, size_t size) {
   
   hashto_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
@@ -375,7 +375,7 @@ Review::mutable_mapvalue() {
   return mapvalue_.MutableMap();
 }
 
-// string vchPubKeyFrom = 4;
+// bytes vchPubKeyFrom = 4;
 inline void Review::clear_vchpubkeyfrom() {
   vchpubkeyfrom_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -402,7 +402,7 @@ inline void Review::set_vchpubkeyfrom(const char* value) {
   vchpubkeyfrom_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.Review.vchPubKeyFrom)
 }
-inline void Review::set_vchpubkeyfrom(const char* value, size_t size) {
+inline void Review::set_vchpubkeyfrom(const void* value, size_t size) {
   
   vchpubkeyfrom_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
@@ -428,7 +428,7 @@ inline void Review::set_allocated_vchpubkeyfrom(::std::string* vchpubkeyfrom) {
   // @@protoc_insertion_point(field_set_allocated:Enze.Review.vchPubKeyFrom)
 }
 
-// string vchSig = 5;
+// bytes vchSig = 5;
 inline void Review::clear_vchsig() {
   vchsig_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -455,7 +455,7 @@ inline void Review::set_vchsig(const char* value) {
   vchsig_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:Enze.Review.vchSig)
 }
-inline void Review::set_vchsig(const char* value, size_t size) {
+inline void Review::set_vchsig(const void* value, size_t size) {
   
   vchsig_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));

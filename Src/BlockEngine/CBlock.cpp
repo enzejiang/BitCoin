@@ -210,7 +210,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
     // Relay wallet transactions that haven't gotten in yet
     if (pindexNew == pindexBest)
         WalletServ::getInstance()->RelayWalletTransactions();// 在节点之间进行转播
-  printf("CBlock::AddToBlockIndex--- serail----9999999910\n");
+     printf("CBlock::AddToBlockIndex--- serail----9999999910\n");
   //  MainFrameRepaint();
     return true;
 }
@@ -333,6 +333,10 @@ uint256 CBlock::BuildMerkleTree() const
         }
         j += nSize;
     }
+    foreach(auto it ,m_vMerkleTree) {
+        printf("CBlock::BuildMerkleTree---[%s]\n", it.ToString().c_str());
+    }
+
     return (m_vMerkleTree.empty() ? 0 : m_vMerkleTree.back());
 }
 // 根据交易对应的索引获得交易对应的默克尔分支
@@ -378,7 +382,7 @@ bool CBlock::WriteToDisk(bool fWriteTransactions, unsigned int& nFileRet, unsign
         fileout.nType |= SER_BLOCKHEADERONLY;
 
     Block cProtocData;
-    printf("CBlock::WriteToDisk---start serail\n");
+    printf("CBlock::WriteToDisk---start serail, hasmerkel [%s]\n", m_hashMerkleRoot.ToString().c_str());
     if (!SeriaBlock(*this, cProtocData))
     {
          printf("CBlock::WriteToDisk---fault serail\n");
@@ -426,7 +430,7 @@ bool CBlock::ReadFromDisk(unsigned int nFile, unsigned int nBlockPos, bool fRead
     char *buf = (char*)malloc(nSize);
     filein.read(buf, nSize);
     Block cProtoc;
-    cProtoc.ParsePartialFromArray(buf, nSize);
+    cProtoc.ParsePartialFromString(buf);
     UnSeriaBlock(cProtoc, *this);
   //  filein >> *this;
 
