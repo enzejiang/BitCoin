@@ -4,6 +4,7 @@ Build*
 *.swap
 *.files
 *.out
+*.so
 tags
 *.fbp
 *.swp

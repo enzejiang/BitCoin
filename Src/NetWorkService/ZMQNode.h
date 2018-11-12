@@ -129,6 +129,17 @@ public:
     {
         m_vAddrToSend.push_back(addr); 
     }
+
+    inline bool isEmptySndLst()const 
+    {
+        return m_SendLst.empty();
+    }
+    
+    inline bool isEmptyRcvLst()const
+    {
+        return m_RecvLst.empty();
+    }
+
 private:
     void ProcessVerMsg(const Version& cVer);
     void ProcessAddrMsg(const Address& vAddr);

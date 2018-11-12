@@ -218,7 +218,7 @@ bool CDB::Write(DbTxn*txn, const string& key, const ::google::protobuf::Message&
 
 bool CDB::Write(DbTxn* txn, const string&key, const string& value, bool fOverwrite)
 {
-    printf("CDB::write--[%s]--value[%s]\n", key.c_str(), value.c_str());
+//    printf("CDB::write--[%s]--value[%s]\n", key.c_str(), value.c_str());
     if (NULL == m_pDb)
         return false;
 
@@ -226,7 +226,7 @@ bool CDB::Write(DbTxn* txn, const string&key, const string& value, bool fOverwri
     Dbt datValue((void*) value.c_str(), value.length());
     // Write
     int ret = m_pDb->put(txn, &datKey, &datValue, (fOverwrite ? 0 : DB_NOOVERWRITE));
-    printf("CDB::write--[%s]--value[%s]--end\n", key.c_str(), value.c_str());
+ //   printf("CDB::write--[%s]--value[%s]--end\n", key.c_str(), value.c_str());
     // Clear memory in case it was a private key
     memset(datKey.get_data(), 0, datKey.get_size());
     memset(datValue.get_data(), 0, datValue.get_size());

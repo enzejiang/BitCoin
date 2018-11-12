@@ -160,6 +160,7 @@ bool CTxDB::ReadDiskTx(const COutPoint& outpoint, CTransaction& tx)
 bool CTxDB::WriteBlockIndex(DbTxn*txn,const CDiskBlockIndex& blockindex)
 {
     string key = string("blockindex") + blockindex.GetBlockHash().ToString();
+    printf("CTxDB::WriteBlockIndex---key[%s]--[%s]\n", key.c_str(), blockindex.m_hashMerkleRoot.ToString().c_str());
     DiskBlockIndex cProtocData;
 
     if (Enze::SeriaDiskBlockIndex(blockindex, cProtocData))
@@ -208,7 +209,7 @@ bool CTxDB::LoadBlockIndex()
         Dbt datKey;
         if (fFlags == DB_SET_RANGE)
         {
-            string strKey = string("blockindex")+uint256(0).ToString();
+            string strKey = string("blockindex");//+uint256(0).ToString();
             datKey.set_size(strKey.length());
             datKey.set_data((void*)strKey.c_str());
         }
@@ -221,13 +222,21 @@ bool CTxDB::LoadBlockIndex()
             printf("Not Found cursor %s---%d\n", __FILE__, __LINE__);
             break;
         }
-
         else if (ret != 0)
+        {
+            printf("Not Found cursor %s---%d\n", __FILE__, __LINE__);
             return false;
+        }
 
+        printf("Find cursor Size[%d]---keySize[%d]--[%d]\n", datValue.get_size(), datKey.get_size(), ret);
         // Unserialize
         DiskBlockIndex diskindex;
-        diskindex.ParsePartialFromArray(datValue.get_data(), datValue.get_size());
+        bool bState = diskindex.ParsePartialFromArray(datValue.get_data(), datValue.get_size());
+        if (!bState) {
+            printf("Error CTxDB::LoadBlockIndex--[%s]--[%s]\n", diskindex.hashprev().c_str(), diskindex.hashmerkleroot().c_str());
+            break;
+        }
+        printf("CTxDB::LoadBlockIndex--[%s]--[%s]\n", diskindex.hashprev().c_str(), diskindex.hashmerkleroot().c_str());
         CBlock cBlock;
         cBlock.m_uBits = diskindex.nbit();
         cBlock.m_uNonce = diskindex.nnonce();
@@ -268,6 +277,7 @@ bool CTxDB::LoadBlockIndex()
     }
 
     pcursor->close();
+   // pcursor->del(0);
     uint256 BestHash;
     printf("CTxDB::LoadBlockIndex---read best hash\n");
     if (!ReadHashBestChain(BestHash))

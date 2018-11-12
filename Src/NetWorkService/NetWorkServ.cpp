@@ -145,10 +145,10 @@ bool NetWorkServ::GetMyExternalIP2(const CAddress& addrConnect, const char* pszG
     int len = recv(hSocket, Buf, 512, 0);
     if (len > 0)
     {
-        //printf("GetMyExternalIP() received %s\n", Buf);
+        printf("GetMyExternalIP() received %s\n", Buf);
         char BufIP[32] = {0};
         sscanf(strstr(Buf,"utf-8")+9,"%*[^\n]\n%[^\n]",BufIP);
-       // printf("GetMyExternalIP() received IP %s\n", BufIP);
+        printf("GetMyExternalIP() received IP %s\n", BufIP);
         CAddress addr(BufIP);
         if (addr.ip == 0 || !addr.IsRoutable())
             return false;
@@ -221,6 +221,38 @@ bool NetWorkServ::GetMyExternalIP(unsigned int& ipRet)
 }
 
 
+void NetWorkServ::AddNewAddrByEndPoint(const char* endPoint)
+{
+    if (NULL == endPoint) return;
+    
+    // endPoint format is [tcp://ip:port]
+    int headLen = strlen("tcp://");
+    if (0 != strncmp(endPoint, "tcp://", headLen)) 
+        return;
+    
+    CAddress addr(endPoint+headLen, NODE_NETWORK);
+    // 根据地址的ip+port来查询对应的内存对象m_cMapAddresses，
+    map<string, CAddress>::iterator it = m_cMapAddresses.find(addr.GetKey());
+    if (it == m_cMapAddresses.end())
+    {
+        printf("NetWorkServ::AddNewAddrByEndPoint--add-into db\n");
+        // New address
+        m_cMapAddresses.insert(make_pair(addr.GetKey(), addr));
+        DaoServ::getInstance()->WriteAddress(addr);
+    }
+    else
+    {
+        CAddress& addrFound = (*it).second;
+        if ((addrFound.m_nServices | addr.m_nServices) != addrFound.m_nServices)
+        {
+              printf("NetWorkServ::AddNewAddrByEndPoint--update-into db\n");
+            // 增加地址对应的服务类型，并将其写入数据库
+            // Services have been added
+            addrFound.m_nServices |= addr.m_nServices;
+            DaoServ::getInstance()->WriteAddress(addrFound);
+        }
+    }
+}
 
 
 

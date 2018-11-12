@@ -102,20 +102,20 @@ ZNode::~ZNode()
 bool ZNode::pingNode()
 {
     zmq_pollitem_t items[] = {{m_cP2PSocket, 0, ZMQ_POLLIN, 0}};
- //   printf("ZNode::pingNode [%s]\n", m_EndPoint.c_str());
+    printf("ZNode::pingNode [%s]\n", m_EndPoint.c_str());
     s_sendmore(m_cP2PSocket, "");
     s_send(m_cP2PSocket, "ping");// ping the server 
     //wait the server reply the pong cmd, we will wait no more than 6s
-    int rc = zmq_poll(items, 1, 6000);
+    int rc = zmq_poll(items, 1, 6000*3);
     if (-1 ==rc) return false;
     
     if (rc != 0) {
-       // char*emp = s_recv(m_cP2PSocket);
+        char*emp = s_recv(m_cP2PSocket);
 
         char* rep = s_recv(m_cP2PSocket);
         m_ServId = rep;
- //       printf("pingNode Has Data[%s]\n", rep);
-        //free(emp);
+        printf("pingNode Has Data[%s]\n", rep);
+        free(emp);
         free(rep);
         return true;
     }
@@ -193,6 +193,7 @@ void ZNode::SendVersion()
     s_sendmore(m_cP2PSocket, "");
     s_sendmore(m_cP2PSocket, "data");
     s_send(m_cP2PSocket, (char*)strData.c_str());
+    delete cProtoc;
 
 }
 
@@ -311,10 +312,11 @@ void ZNode::AddRecvMessage(PB_MessageData* pRecvData)
 
 void ZNode::Recv()
 {
-    string req = s_recv(m_cP2PSocket);
+    char* req = s_recv(m_cP2PSocket);
     std::lock_guard<std::mutex> guard(m_cRcvMtx);
     PB_MessageData *cProtoc = new PB_MessageData();
     cProtoc->ParsePartialFromString(req);
+    free(req);
     m_RecvLst.push_back(cProtoc);
 }
 
@@ -326,6 +328,7 @@ void ZNode::Send()
         return;
     }
     if (0 == m_nVersion) {
+        SendVersion();
         printf("Do not Get peer Node Version Data ,will not send data to it\n");
         return ;
     }

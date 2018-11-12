@@ -84,6 +84,7 @@ namespace Enze
         
             bool LoadAddresses();
             bool AddUserProviedAddress();
+            void AddNewAddrByEndPoint(const char* endPoint);
             bool GetMyExternalIP(unsigned int& ipRet);
             bool GetMyExternalIP2(const CAddress& addrConnect, 
                                     const char* pszGet, const char* pszKeyword, unsigned int& ipRet);
@@ -95,12 +96,10 @@ namespace Enze
             CAddress m_cAddrLocalHost;// = new CAddress(0, DEFAULT_PORT, m_nLocalServices);// 本地主机地址
             ZNode* m_pcNodeLocalHost;// = new ZNode(INVALID_SOCKET, CAddress("127.0.0.1", m_nLocalServices)); // 本地节点
             
-       //     vector<ZNode*> m_cZNodeLst;
             map<string, ZNode*> m_cZNodeLst; // key:Endpoint. value is node
             map<string, CAddress> m_cMapAddresses;
             CAddress addrProxy;
 
-    //        map<CInv, CDataStream> mapRelay;
             deque<pair<int64, CInv> > vRelayExpiration;
             map<CInv, int64> mapAlreadyAskedFor;
             void* m_cZmqCtx; 

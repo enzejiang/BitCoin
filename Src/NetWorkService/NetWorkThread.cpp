@@ -76,6 +76,7 @@ bool NetWorkServ::StartNode()
         addrIncoming = m_cAddrLocalHost;
         //CWalletDB().WriteSetting("addrIncoming", addrIncoming);
     }
+    printf("m_cAddrLocalHost = %s\n", m_cAddrLocalHost.ToString().c_str());
 
     m_strIdentity = "tcp://"+m_cAddrLocalHost.ToString();
     /*IRC是Internet Relay Chat 的英文缩写，中文一般称为互联网中继聊天。
@@ -163,14 +164,14 @@ void NetWorkServ::NodeSyncThread()
 {
     printf("%s---%d\n", __FILE__, __LINE__);
     printf("NetWorkServ::NodeSyncThread--start\n");
-    void* worker = zmq_socket(m_cZmqCtx, ZMQ_ROUTER);
+    void* worker = zmq_socket(m_cZmqCtx, ZMQ_DEALER);
     zmq_connect(worker, "inproc://backend.ipc");
     while(1) 
     {
         char* brokerId = s_recv(worker);
+        printf("brokerid [%s]\n", brokerId);
         char* repId  = s_recv(worker);
-        char*emp = s_recv(worker);
-        free(emp);
+        printf("repId [%s]\n", repId);
         char*ReqType = s_recv(worker);
         printf("Recv Data, brokerId[%s], repId[%s]\n", brokerId, repId);
         printf("Recv Data, ReqType[%s]\n", ReqType);
@@ -179,28 +180,36 @@ void NetWorkServ::NodeSyncThread()
             s_sendmore(worker, repId);
             s_send(worker, (char*)m_strIdentity.c_str()); 
             printf("Recv Data, ReqType[%s]--rep\n", ReqType);
-#if 0
-            if (!FindNode(repId)) {
-                printf("Recv Data, ReqType not Find[%s]\n", repId);
-                ConnectNode(repId);
+            if (!FindNode(brokerId)) {
+                printf("Recv Data, ReqType not Find[%s]\n", brokerId);
+                AddNewAddrByEndPoint(repId);
             }
-#endif
+
+            free(brokerId);
+            free(repId);
+            free(ReqType);
         }
         else {
             char* pData = s_recv(worker);
-            ZNode *pNode = FindNode(repId);
+            ZNode *pNode = FindNode(brokerId);
             if (!pNode) {
-                pNode = ConnectNode(repId);
+                pNode = ConnectNode(brokerId);
             }
+            free(brokerId);
+            free(repId);
+            free(ReqType);
             if (!pNode) {
                 printf("NetWorkServ::NodeSyncThread--Node[%s] is not alive\n", repId);
                 free(pData);
                 continue;
             }
+            pNode->AddRef();
             string req = pData;
             PB_MessageData *cProtoc = new PB_MessageData;
             cProtoc->ParsePartialFromString(req);
             pNode->AddRecvMessage(cProtoc);
+            pNode->Release();
+            free(pData);
 #if 0
             if (PB_MessageData_Mesg_Kind_MK_Version == cProtoc->emsgkind()) {
                 printf("NetWorkServ::MessageRecv--recv Version[%d]\n", cProtoc->cversion().nversion());
@@ -217,10 +226,7 @@ void NetWorkServ::NodeSyncThread()
             s_send(worker, (char*)strData.c_str());
 #endif
         }
-        free(brokerId);
-        free(repId);
-        //free(ReqType);
-        free(ReqType);
+
         sleep(1);
     }
     
@@ -232,7 +238,7 @@ void NetWorkServ::MessageRecv()
 {
     
     void* backend = zmq_socket(m_cZmqCtx, ZMQ_DEALER);
-    zmq_setsockopt(backend, ZMQ_IDENTITY, m_strIdentity.c_str(), m_strIdentity.length());
+    zmq_setsockopt(backend, ZMQ_IDENTITY, "backend", m_strIdentity.length());
     zmq_bind(backend, "inproc://backend.ipc");
     printf("NetWorkServ::MessageRecv--start\n");
     void * frontend = zmq_socket(m_cZmqCtx, ZMQ_ROUTER);
@@ -300,7 +306,7 @@ void NetWorkServ::SocketHandler()
         {
             ZNode* pnode= it.second;
             // 节点准备释放链接，并且对应的接收和发送缓存区都是空
-            if (pnode->ReadyToDisconnect() /*&& pnode->vRecv.empty() && pnode->vSend.empty()*/)
+            if (pnode->ReadyToDisconnect() && pnode->isEmptyRcvLst() && pnode->isEmptySndLst())
             {
                 // 从节点列表中移除
                 // remove from m_cZNodeLst
@@ -366,18 +372,20 @@ void NetWorkServ::SocketHandler()
             for (int i = 0; i < m_cZNodeLst.size(); ++i) {
                 if (items[i].revents & ZMQ_POLLIN) {
                     //zmq::socket_t* pSock = items[i].socket;
-                  //  string emp = s_recv(items[i].socket);
-                    string identity = s_recv(items[i].socket);
+                   //string emp = s_recv(items[i].socket);
+                    char* identity = s_recv(items[i].socket);
                     auto it = m_cZNodeLst.find(identity);
                     if (it != m_cZNodeLst.end()) {
-                        printf("[%s] Start recv\n", identity.c_str());
+                        printf("[%s] Start recv\n", identity);
                         it->second->Recv();
                     }else {
-                       printf("%s---%d---%s,error[Node %s was not find]\n", __FILE__, __LINE__, __func__, identity.c_str());
+                       printf("%s---%d---%s,error[Node %s was not find]\n", __FILE__, __LINE__, __func__, identity);
                        foreach (auto it, m_cZNodeLst) {
                            printf("Node id [%s]\n", it.first.c_str());
                        }
                     }
+
+                    free(identity);
                 }
             }
         }
@@ -411,17 +419,15 @@ void NetWorkServ::OpenConnections()
     loop
     {
         // Wait
-        vfThreadRunning[1] = false;
         sleep(5);
+        //printf("NetWorkServ::OpenConnections----1\n");
         while (m_cZNodeLst.size() >= nMaxConnections || m_cZNodeLst.size() >= m_cMapAddresses.size())
         {
-            CheckForShutdown(1);
             sleep(50);
         }
-        vfThreadRunning[1] = true;
-        CheckForShutdown(1);
 
 
+     //   printf("NetWorkServ::OpenConnections----2\n");
 		// Ip对应的C类地址，相同的C类地址放在一起
         fIRCOnly = !fIRCOnly;
         fIRCOnly = false;
@@ -435,27 +441,23 @@ void NetWorkServ::OpenConnections()
         unsigned char pchIPCMask[4] = { 0xff, 0xff, 0xff, 0x00 };
         unsigned int nIPCMask = *(unsigned int*)pchIPCMask;
         vector<unsigned int> vIPC;
-        //CRITICAL_BLOCK(cs_mapIRCAddresses)
-        //CRITICAL_BLOCK(cs_m_cMapAddresses)
+        vIPC.reserve(m_cMapAddresses.size());
+        unsigned int nPrev = 0;
+        // mapAddress已经进行排序了，默认是生效排序
+        foreach(const PAIRTYPE(string, CAddress)& item, m_cMapAddresses)
         {
-            vIPC.reserve(m_cMapAddresses.size());
-            unsigned int nPrev = 0;
-			// mapAddress已经进行排序了，默认是生效排序
-            foreach(const PAIRTYPE(string, CAddress)& item, m_cMapAddresses)
-            {
-                const CAddress& addr = item.second;
-                if (!addr.IsIPv4())
-                    continue;
+            const CAddress& addr = item.second;
+            if (!addr.IsIPv4())
+                continue;
 #if 0
-                if (fIRCOnly && !mapIRCAddresses.count(item.first))
-                    continue;
+            if (fIRCOnly && !mapIRCAddresses.count(item.first))
+                continue;
 #endif
-                // Taking advantage of m_cMapAddresses being in sorted order,
-                // with IPs of the same class C grouped together.
-                unsigned int ipC = addr.ip & nIPCMask;
-                if (ipC != nPrev)
-                    vIPC.push_back(nPrev = ipC);
-            }
+            // Taking advantage of m_cMapAddresses being in sorted order,
+            // with IPs of the same class C grouped together.
+            unsigned int ipC = addr.ip & nIPCMask;
+            if (ipC != nPrev)
+                vIPC.push_back(nPrev = ipC);
         }
         if (vIPC.empty())
             continue;
@@ -469,10 +471,13 @@ void NetWorkServ::OpenConnections()
         // A lone node in a class C will get as much attention as someone holding all 255
         // IPs in another class C.
         //
+        
+  //      printf("NetWorkServ::OpenConnections----3\n");
         bool fSuccess = false;
         int nLimit = vIPC.size();
         while (!fSuccess && nLimit-- > 0)
         {
+ //           printf("NetWorkServ::OpenConnections----4\n");
             // Choose a random class C 随机获取一个C级别的地址
             unsigned int ipC = vIPC[GetRand(vIPC.size())];
 
@@ -488,6 +493,7 @@ void NetWorkServ::OpenConnections()
                 //if (!mapIRCAddresses.empty())
                 //    nDelay *= 100;  
             }
+  //          printf("NetWorkServ::OpenConnections----5\n");
 					
             /*
             map::lower_bound(key):返回map中第一个大于或等于key的迭代器指针
@@ -497,6 +503,8 @@ void NetWorkServ::OpenConnections()
                  mi != m_cMapAddresses.upper_bound(CAddress(ipC | ~nIPCMask, 0xffff).GetKey());
                  ++mi)
             {
+                
+ //           printf("NetWorkServ::OpenConnections----6\n");
                 const CAddress& addr = (*mi).second;
                 //if (fIRCOnly && !mapIRCAddresses.count((*mi).first))
                 //    continue;
@@ -504,11 +512,14 @@ void NetWorkServ::OpenConnections()
                 int64 nRandomizer = (addr.nLastFailed * addr.ip * 7777U) % 20000;
                 // 当前时间 - 地址连接最新失败的时间 要大于对应节点重连的间隔时间
                 if (GetTime() - addr.nLastFailed > nDelay * nRandomizer / 10000)
+               // if (GetTime() - addr.nLastFailed > 12)
                     mapIP[addr.ip].push_back(addr); //同一个地址区段不同地址： 同一个地址的不同端口，所有对应同一个ip会有多个地址
             }
             
+  //          printf("NetWorkServ::OpenConnections----7\n");
             if (mapIP.empty())
                 break;
+ //           printf("NetWorkServ::OpenConnections----8\n");
 
             // Choose a random IP in the class C
             map<unsigned int, vector<CAddress> >::iterator mi = mapIP.begin();
@@ -519,7 +530,7 @@ void NetWorkServ::OpenConnections()
             // Once we've chosen an IP, we'll try every given port before moving on
             foreach(const CAddress& addrConnect, (*mi).second)
             {
-               // printf("OpenConnection,LocalIP[%s], addrConnect_ip[%s]\n", m_cAddrLocalHost.ToStringIP().c_str(), addrConnect.ToStringIP().c_str());
+                printf("OpenConnection,LocalIP[%s], addrConnect_ip[%s]\n", m_cAddrLocalHost.ToStringIP().c_str(), addrConnect.ToStringIP().c_str());
 				// ip不能是本地ip，且不能是非ipV4地址，对应的ip地址不在本地的节点列表中
                 CheckForShutdown(1);
                 if (addrConnect.ip == m_cAddrLocalHost.ip || !addrConnect.IsIPv4() || FindNode(addrConnect.ip))
@@ -545,16 +556,6 @@ void NetWorkServ::OpenConnections()
 				// 从创建的节点获得尽可能多的地址信息，发送消息，在消息处理线程中进行处理
                 // Get as many addresses as we can
                 pnode->SendGetAddrRequest();
-
-                ////// should the one on the receiving end do this too?
-                // Subscribe our local subscription list
-				// 新建的节点要订阅我们本地主机订阅的对应通断
-#if 0
-                const unsigned int nHops = 0;
-                for (unsigned int nChannel = 0; nChannel < m_pcNodeLocalHost->vfSubscribe.size(); nChannel++)
-                    if (m_pcNodeLocalHost->vfSubscribe[nChannel])
-                        pnode->PushMessage("subscribe", nChannel, nHops);
-#endif 
                 fSuccess = true;
                 break;
             }

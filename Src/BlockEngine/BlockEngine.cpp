@@ -79,6 +79,7 @@ BlockEngine::BlockEngine()
 
     // Settings
     fGenerateBitcoins = 1; // 是否挖矿，产生比特币
+    mapBlockIndex.clear();
 }
 
 BlockEngine::~BlockEngine()
@@ -518,6 +519,7 @@ FILE* BlockEngine::AppendBlockFile(unsigned int& nFileRet)
 
 bool BlockEngine::LoadBlockIndex(bool fAllowNew)
 {
+    mapBlockIndex.clear();
     //
     // Load block index
     //
@@ -527,28 +529,15 @@ bool BlockEngine::LoadBlockIndex(bool fAllowNew)
     //
     // Init with genesis block
     //
+    printf("---------------------------------\n");
+    printf("---------mapBlockIndex [%d]--------------\n", mapBlockIndex.size());
+
+    printf("---------------------------------\n");
+
     if (mapBlockIndex.empty())
     {
         if (!fAllowNew)
             return false;
-
-
-        // Genesis Block:
-        // GetHash()      = 0xdc8be64865ce298ca87ebee785b15fa29240e60db149c2ba85666e702f3eb734
-        // hashMerkleRoot = 0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
-        // txNew.vin[0].scriptSig     = 486604799 4 0x736B6E616220726F662074756F6C69616220646E6F63657320666F206B6E697262206E6F20726F6C6C65636E61684320393030322F6E614A2F33302073656D695420656854
-        // txNew.vout[0].m_nValue       = 5000000000
-        // txNew.vout[0].m_cScriptPubKey = 0x5F1DF16B2B704C8A578D0BBAF74D385CDE12C11EE50455F3C438EF4C3FBCF649B6DE611FEAE06279A60939E028A8D65C10B73071A6F16719274855FEB0FD8A6704 OP_CHECKSIG
-        // block.nVersion = 1
-        // block.m_uTime    = 1231006505
-        // block.m_uBits    = 0x1d00ffff
-        // block.m_uNonce   = 2083236893
-        // CBlock(hash=000000000019d6, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=4a5e1e, m_uTime=1231006505, m_uBits=1d00ffff, m_uNonce=2083236893, vtx=1)
-        //   CTransaction(hash=4a5e1e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-        //     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73)
-        //     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
-        //   vMerkleTree: 4a5e1e
-
         // Genesis block
         char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
         CTransaction txNew;
@@ -567,8 +556,8 @@ bool BlockEngine::LoadBlockIndex(bool fAllowNew)
         block.m_uNonce   = 2083236893;
 
         //// debug print, delete this later
-        printf("%s\n", block.GetHash().ToString().c_str());
-        printf("%s\n", block.m_hashMerkleRoot.ToString().c_str());
+        printf("BlockEngine::LoadBlockIndex, Hash[%s]\n", block.GetHash().ToString().c_str());
+        printf("BlockEngine::LoadBlockIndex, merkelRoot[%s]\n", block.m_hashMerkleRoot.ToString().c_str());
        // printf("%s\n", hashGenesisBlock.ToString().c_str());
        // txNew.m_vTxOut[0].m_cScriptPubKey.print();
         //block.print();
@@ -744,7 +733,7 @@ bool BlockEngine::BitcoinMiner()
         sleep(50);
 #if 0
         CheckForShutdown(3);
-        while (vNodes.empty())
+        while (m_ZNodeList.empty())
         {
             sleep(30);
             CheckForShutdown(3);
@@ -754,8 +743,6 @@ bool BlockEngine::BitcoinMiner()
         CBlockIndex* pindexPrev = pindexBest;
         if (NULL == pindexPrev) {
             printf("**************************\nBitcoinMiner---pindexPrev == NULL\n*************************\n");
-
-
         }
 		// 获取挖矿难度
         unsigned int m_uBits = GetNextWorkRequired(pindexPrev);

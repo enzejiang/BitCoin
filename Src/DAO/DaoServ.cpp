@@ -258,6 +258,7 @@ bool DaoServ::WriteBlockIndex(const CDiskBlockIndex& blockindex)
     }
     
     if (bRet) {
+       printf("DaoServ::WriteBlockIndex---Ok\n");
        pcTxn->commit(0); 
     }
     else 

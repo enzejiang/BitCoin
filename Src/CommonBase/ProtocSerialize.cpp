@@ -169,7 +169,7 @@ bool UnSeriaTxIn(TxIn& cProtoc, CTxIn& cTargetData)
         cTargetData.m_cScriptSig.push_back(it);
     }
 #endif
-    printf("unSeriaTxIn--protoc_cScriptSig_size[%d], target scriptsz[%d]\n", cProtoc.cscriptsig().length(), cTargetData.m_cScriptSig.size());
+//    printf("unSeriaTxIn--protoc_cScriptSig_size[%d], target scriptsz[%d]\n", cProtoc.cscriptsig().length(), cTargetData.m_cScriptSig.size());
     cTargetData.m_uSequence = cProtoc.usequence();
     return Enze::UnSeriaOutPoint(cProtoc.cprevout(), cTargetData.m_cPrevOut);
 
@@ -177,7 +177,7 @@ bool UnSeriaTxIn(TxIn& cProtoc, CTxIn& cTargetData)
 
 bool SeriaTxIn(const CTxIn& cSrcData, TxIn& cProtoc)
 {
-    printf("SeriaTxIn--start[%d]\n", cSrcData.m_cScriptSig.size());
+  //  printf("SeriaTxIn--start[%d]\n", cSrcData.m_cScriptSig.size());
     cProtoc.Clear();
     cProtoc.set_usequence(cSrcData.m_uSequence);
 
@@ -185,7 +185,7 @@ bool SeriaTxIn(const CTxIn& cSrcData, TxIn& cProtoc)
 //    string strScript = HexStr(cSrcData.m_cScriptSig.begin(), cSrcData.m_cScriptSig.end(), false);
     string strScript(cSrcData.m_cScriptSig.begin(), cSrcData.m_cScriptSig.end());
     cProtoc.set_cscriptsig(strScript);
-    printf("SeriaTxIn--cScriptSigSz[%d]--strScriptSz[%d]\n", cProtoc.cscriptsig().length(), strScript.length());
+  //  printf("SeriaTxIn--cScriptSigSz[%d]--strScriptSz[%d]\n", cProtoc.cscriptsig().length(), strScript.length());
     return Enze::SeriaOutPoint(cSrcData.m_cPrevOut, *cProtoc.mutable_cprevout());
 }
 
@@ -235,7 +235,7 @@ bool UnSeriaTransaction(const Transaction& cProtoc, CTransaction& cTargetData)
 
         cTargetData.m_vTxIn.push_back(txin);
     }
-    printf("UnSeriaTransaction--cScriptSigsz[%d]\n\n\n", cTargetData.m_vTxIn[0].m_cScriptSig.size());
+ //   printf("UnSeriaTransaction--cScriptSigsz[%d]\n\n\n", cTargetData.m_vTxIn[0].m_cScriptSig.size());
     foreach(auto it, cProtoc.vtxout())
     {
         CTxOut txout;
