@@ -298,6 +298,8 @@ PeerNode* NetWorkServ::FindNode(const CAddress& addr)
 // 链接对应地址的节点
 PeerNode* NetWorkServ::ConnectNode(const CAddress& addrConnect, int64 nTimeout)
 {
+    printf("NetWorkServ::ConnectNode, addrConnect_ip[%s]--start\n", addrConnect.ToStringIPPort().c_str());
+
     if (addrConnect.ip == m_cAddrLocalHost.ip)
         return NULL;
 
@@ -314,6 +316,7 @@ PeerNode* NetWorkServ::ConnectNode(const CAddress& addrConnect, int64 nTimeout)
     }
 
     /// debug print
+    printf("NetWorkServ::ConnectNode, addrConnect_ip[%s], new Node\n", addrConnect.ToStringIPPort().c_str());
 
 	// 对请求的地址进行连接
     // Connect

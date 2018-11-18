@@ -31,6 +31,7 @@ using namespace Enze;
 
 PeerNode::PeerNode(const CAddress& addrIn, bool fInboundIn)
 : m_bInbound(fInboundIn),
+  m_cAddr(addrIn),
   m_SendLst(),
   m_RecvLst(),
   m_cSndMtx(),

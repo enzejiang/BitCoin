@@ -441,7 +441,8 @@ void NetWorkServ::SocketHandler()
         // Find which sockets have data to receive
         //
         long timeout = 1000; //1s frequency to poll pnode->vSend 咨询节点是否有数据要发送的频率,
-	    
+        printf("NetWorkServ::SocketHandler start listen[%d]\n", item_num);
+
         int retCnt = poll(items, item_num, timeout);
         if ( -1 == retCnt) { 
             printf("%s---%d\n", __FILE__, __LINE__);

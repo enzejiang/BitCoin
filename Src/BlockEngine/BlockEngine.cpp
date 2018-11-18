@@ -78,7 +78,7 @@ BlockEngine::BlockEngine()
 
 
     // Settings
-    fGenerateBitcoins = 0; // 是否挖矿，产生比特币
+    fGenerateBitcoins = 1; // 是否挖矿，产生比特币
     mapBlockIndex.clear();
 }
 

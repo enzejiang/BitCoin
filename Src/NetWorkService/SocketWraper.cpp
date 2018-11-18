@@ -25,6 +25,8 @@ namespace Enze
 SOCKET udp_socket(const CAddress& cSelfAddr, const CAddress& cServAddr, bool bConnct)
 {
     SOCKET udpFd = socket(AF_INET, SOCK_DGRAM, 0);
+   // SOCKET udpFd = socket(AF_INET, SOCK_STREAM, 0);
+
     int on = 1;
     setsockopt(udpFd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
     setsockopt(udpFd, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on));
@@ -32,7 +34,9 @@ SOCKET udp_socket(const CAddress& cSelfAddr, const CAddress& cServAddr, bool bCo
     struct sockaddr_in servAddr = cServAddr.GetSockAddr();
     
     struct sockaddr_in selfAddr = cSelfAddr.GetSockAddr();
-    printf("udp_socket, ip[%s] port[%d]\n", inet_ntoa(selfAddr.sin_addr), htons(selfAddr.sin_port));
+    printf("udp_socket, selfAddr ip[%s] port[%d]\n", inet_ntoa(selfAddr.sin_addr), htons(selfAddr.sin_port));
+
+    printf("udp_socket, servAddr ip[%s] port[%d]\n", inet_ntoa(servAddr.sin_addr), htons(servAddr.sin_port));
     if (0 != bind(udpFd, (struct sockaddr*)&selfAddr, sizeof(selfAddr))) {
         printf("%s---%d, Bind error %m\n", __FILE__, __LINE__);
         return -1;
@@ -40,7 +44,7 @@ SOCKET udp_socket(const CAddress& cSelfAddr, const CAddress& cServAddr, bool bCo
     if (bConnct) {
         if (0 != connect(udpFd, (struct sockaddr*)&servAddr, sizeof(servAddr))) {
             printf("%s---%d, connect error %m\n", __FILE__, __LINE__);
-            return -1; 
+           // return -1;
         }
     
     }
