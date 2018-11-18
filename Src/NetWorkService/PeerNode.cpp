@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  ZMQNode.cpp
+ *       Filename:  PeerNode.cpp
  *
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  10/20/2018 07:52:43 PM
+ *        Created:  11/17/2018 03:36:50 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -15,6 +15,7 @@
  *
  * =====================================================================================
  */
+
 #include <map>
 #include "CommonBase/ProtocSerialize.h"
 #include "CommonBase/market.h"
@@ -22,69 +23,24 @@
 #include "BlockEngine/BlockEngine.h"
 #include "DAO/DaoServ.h"
 #include "WalletService/WalletServ.h"
-#include "ZMQNode.h"
+#include "PeerNode.h"
 #include "NetWorkServ.h"
+#include "SocketWraper.h"
 using namespace std;
 using namespace Enze;
 
-ZNode::ZNode(const string& id, void* ctx, const CAddress& addrIn, bool fInboundIn)
+PeerNode::PeerNode(const CAddress& addrIn, bool fInboundIn)
 : m_bInbound(fInboundIn),
-  m_bNetworkNode(false),
-  m_bDisconnect(false),
-  m_bClient(false),
-  m_nRefCount(0),
-  m_nVersion(0),
-  m_nReleaseTime(0),
-  m_nServices(0),
-  m_cAddr(addrIn),
-  m_Id(id),
-  m_ServId(),
-  m_cP2PSocket(nullptr),
   m_SendLst(),
   m_RecvLst(),
   m_cSndMtx(),
   m_cRcvMtx()
 {
-    m_cP2PSocket  = zmq_socket(ctx, ZMQ_DEALER);
-    m_EndPoint = "tcp://"+m_cAddr.ToString();
-  //  m_Id += "_"+m_EndPoint;
-    zmq_setsockopt(m_cP2PSocket, ZMQ_IDENTITY, m_Id.c_str(), m_Id.length());
-
-    printf("Znode Endpoint [%s], id[%s]\n", m_EndPoint.c_str(), m_Id.c_str());
-    int rc = zmq_connect(m_cP2PSocket, m_EndPoint.c_str());
-    assert(0 == rc);
+    m_peerFd = udp_socket(CAddress("127.0.0.1"), m_cAddr);
 }
 
-ZNode::ZNode(const string& id, void* ctx, const char* endPoint)
-: m_bInbound(false),
-  m_bNetworkNode(false),
-  m_bDisconnect(false),
-  m_bClient(false),
-  m_nRefCount(0),
-  m_nVersion(0),
-  m_nReleaseTime(0),
-  m_nServices(0),
-  m_cAddr(endPoint+4),
-  m_Id(id),
-  m_ServId(),
-  m_cP2PSocket(nullptr),
-  m_SendLst(),
-  m_RecvLst(),
-  m_cSndMtx(),
-  m_cRcvMtx()
-{
-    assert(endPoint != NULL);
-    m_cP2PSocket  = zmq_socket(ctx, ZMQ_DEALER);
-    m_EndPoint = endPoint;
-    
-    zmq_setsockopt(m_cP2PSocket, ZMQ_IDENTITY, m_Id.c_str(), m_Id.length());
 
-    printf("Znode Endpoint [%s], id[%s]\n", m_EndPoint.c_str(), m_Id.c_str());
-    int rc = zmq_connect(m_cP2PSocket, m_EndPoint.c_str());
-    assert(0 == rc);
-}
-
-ZNode::~ZNode()
+PeerNode::~PeerNode()
 {
     foreach(PB_MessageData* pRecv, m_RecvLst)
     {
@@ -96,26 +52,25 @@ ZNode::~ZNode()
         delete pSend;
     }
     m_SendLst.clear();
-    zmq_close(m_cP2PSocket);
+    close(m_peerFd);
 }
 
-bool ZNode::pingNode()
+bool PeerNode::pingNode()
 {
-    zmq_pollitem_t items[] = {{m_cP2PSocket, 0, ZMQ_POLLIN, 0}};
-    printf("ZNode::pingNode [%s]\n", m_EndPoint.c_str());
-    s_sendmore(m_cP2PSocket, "");
-    s_send(m_cP2PSocket, "ping");// ping the server 
+    zmq_pollitem_t items[] = {{0, m_peerFd, ZMQ_POLLIN, 0}};
+    int ret = sock_send(m_peerFd, "ping");// ping the server 
+    if (0 > ret) {
+        printf("%s---%d, Error[%m]\n", __FILE__, __LINE__);
+        return false;
+    }
     //wait the server reply the pong cmd, we will wait no more than 6s
     int rc = zmq_poll(items, 1, 6000*3);
     if (-1 ==rc) return false;
-    
+   
+    CAddress cAddr;
     if (rc != 0) {
-        char*emp = s_recv(m_cP2PSocket);
-
-        char* rep = s_recv(m_cP2PSocket);
-        m_ServId = rep;
+        char* rep = sock_recv(m_peerFd);
         printf("pingNode Has Data[%s]\n", rep);
-        free(emp);
         free(rep);
         return true;
     }
@@ -124,21 +79,15 @@ bool ZNode::pingNode()
 }
 
 
-const char* ZNode::getServId()const
+void PeerNode::Disconnect()
 {
-    return m_ServId.c_str();
-}
-
-void ZNode::Disconnect()
-{
-    printf("disconnecting node %s\n",  m_Id.c_str());
+    printf("disconnecting node %s\n",  m_cAddr.GetKey().c_str());
 
     map<string, CAddress>& mapAddresses = Enze::NetWorkServ::getInstance()->getMapAddr();
     // If outbound and never got version message, mark address as failed
     if (!m_bInbound)
         mapAddresses[m_cAddr.GetKey()].nLastFailed = GetTime();
 
-    zmq_disconnect(m_cP2PSocket, m_EndPoint.c_str());
     m_bDisconnect = true;
     // All of a nodes broadcasts and subscriptions are automatically torn down
     // when it goes down, so a node has to stay up to keep its broadcast going.
@@ -148,19 +97,19 @@ void ZNode::Disconnect()
     */
 }
 // 准备释放链接
-bool ZNode::ReadyToDisconnect()
+bool PeerNode::ReadyToDisconnect()
 {
     return m_bDisconnect || GetRefCount() <= 0;
 }
 
 // 获取对应的应用计数
-int ZNode::GetRefCount()
+int PeerNode::GetRefCount()
 {
     return max(m_nRefCount, 0) + (GetTime() < m_nReleaseTime ? 1 : 0);
 }
 
 // 增加对应的应用计数
-void ZNode::AddRef(int64 nTimeout)
+void PeerNode::AddRef(int64 nTimeout)
 {
     if (nTimeout != 0)
         m_nReleaseTime = max(m_nReleaseTime, GetTime() + nTimeout); // 推迟节点对应的释放时间
@@ -170,14 +119,14 @@ void ZNode::AddRef(int64 nTimeout)
 }
 
 // 节点释放对应，则对应的应用计数减1
-void ZNode::Release()
+void PeerNode::Release()
 {
     --m_nRefCount;
 }
 
-void ZNode::SendVersion()
+void PeerNode::SendVersion()
 {
-    printf("ZNode::SendVersion\n");
+    printf("PeerNode::SendVersion\n");
     int64 nTime = (m_bInbound ? GetAdjustedTime() : GetTime());
     PB_MessageData *cProtoc = new PB_MessageData();
     cProtoc->set_emsgkind(PB_MessageData_Mesg_Kind_MK_Version);
@@ -189,15 +138,13 @@ void ZNode::SendVersion()
     
     string strData;
     cProtoc->SerializePartialToString(&strData);
-    //s_sendmore(socket, m_EndPoint.c_str());
-    s_sendmore(m_cP2PSocket, "");
-    s_sendmore(m_cP2PSocket, "data");
-    s_send(m_cP2PSocket, (char*)strData.c_str());
+    sock_send(m_peerFd, "data");
+    sock_send(m_peerFd, strData.c_str());
     delete cProtoc;
 
 }
 
-void ZNode::SendGetBlocks(const CBlockLocator& local, const uint256& hash)
+void PeerNode::SendGetBlocks(const CBlockLocator& local, const uint256& hash)
 {
     PB_MessageData *cProtoc = new PB_MessageData();
     cProtoc->set_emsgkind(PB_MessageData_Mesg_Kind_MK_GetBlocks);
@@ -213,7 +160,7 @@ void ZNode::SendGetBlocks(const CBlockLocator& local, const uint256& hash)
     m_SendLst.push_back(cProtoc);
 }
 
-void ZNode::SendAddr(const vector<CAddress>& addr)
+void PeerNode::SendAddr(const vector<CAddress>& addr)
 {
     if (0 == addr.size()) return; 
     
@@ -227,7 +174,7 @@ void ZNode::SendAddr(const vector<CAddress>& addr)
     m_SendLst.push_back(cProtoc);
 }
 
-void ZNode::SendTx(const CTransaction& tx)
+void PeerNode::SendTx(const CTransaction& tx)
 {
     PB_MessageData *cProtoc = new PB_MessageData();
     cProtoc->set_emsgkind(PB_MessageData_Mesg_Kind_MK_Tx);
@@ -236,7 +183,7 @@ void ZNode::SendTx(const CTransaction& tx)
     m_SendLst.push_back(cProtoc);
 }
     
-void ZNode::SendBlock(const CBlock& block)
+void PeerNode::SendBlock(const CBlock& block)
 {
     PB_MessageData *cProtoc = new PB_MessageData();
     cProtoc->set_emsgkind(PB_MessageData_Mesg_Kind_MK_Block);
@@ -246,7 +193,7 @@ void ZNode::SendBlock(const CBlock& block)
     m_SendLst.push_back(cProtoc);
 }
 
-void ZNode::SendGetAddrRequest()
+void PeerNode::SendGetAddrRequest()
 {
     PB_MessageData *cProtoc = new PB_MessageData();
     cProtoc->set_emsgkind(PB_MessageData_Mesg_Kind_MK_GetAddr);
@@ -254,7 +201,7 @@ void ZNode::SendGetAddrRequest()
     m_SendLst.push_back(cProtoc);
 }
     
-void ZNode::SendInv(const vector<CInv>& vInv, bool bReqInv)
+void PeerNode::SendInv(const vector<CInv>& vInv, bool bReqInv)
 {
     PB_MessageData *cProtoc = new PB_MessageData();
     if (!bReqInv)
@@ -265,25 +212,25 @@ void ZNode::SendInv(const vector<CInv>& vInv, bool bReqInv)
         SeriaInv(it, *(cProtoc->add_vinv()));
     }
 
-    printf("ZNode::SendInv,DataSize[%d],%s---%d\n", cProtoc->ByteSizeLong(),__FILE__, __LINE__);
+    printf("PeerNode::SendInv,DataSize[%d],%s---%d\n", cProtoc->ByteSizeLong(),__FILE__, __LINE__);
     std::lock_guard<std::mutex> guard(m_cSndMtx);
     m_SendLst.push_back(cProtoc);
 }
 
 // 增加库存
-void ZNode::AddInventoryKnown(const CInv& inv)
+void PeerNode::AddInventoryKnown(const CInv& inv)
 {
     m_setInventoryKnown.insert(inv);
 }
 
 // 推送库存
-void ZNode::PushInventory(const CInv& inv)
+void PeerNode::PushInventory(const CInv& inv)
 {
     if (!m_setInventoryKnown.count(inv))
         m_vInventoryToSend.push_back(inv);
 }
 
-void ZNode::AskFor(const CInv& inv)
+void PeerNode::AskFor(const CInv& inv)
 {
     // We're using mapAskFor as a priority queue, 优先级队列
     // the key is the earliest time the request can be sent （key对应的是请求最早被发送的时间）
@@ -304,15 +251,16 @@ void ZNode::AskFor(const CInv& inv)
 
 
 
-void ZNode::AddRecvMessage(PB_MessageData* pRecvData)
+void PeerNode::AddRecvMessage(PB_MessageData* pRecvData)
 {
     std::lock_guard<std::mutex> guard(m_cRcvMtx);
     m_RecvLst.push_back(pRecvData);
 }
 
-void ZNode::Recv()
+void PeerNode::Recv()
 {
-    char* req = s_recv(m_cP2PSocket);
+    CAddress cAddr;
+    char* req = sock_recv(m_peerFd);
     std::lock_guard<std::mutex> guard(m_cRcvMtx);
     PB_MessageData *cProtoc = new PB_MessageData();
     cProtoc->ParsePartialFromString(req);
@@ -320,10 +268,10 @@ void ZNode::Recv()
     m_RecvLst.push_back(cProtoc);
 }
 
-void ZNode::Send()
+void PeerNode::Send()
 {
     if (!pingNode()) {
-        printf("ZNode::Send--Serv[%s] is offline\n", m_ServId.c_str());
+        printf("PeerNode::Send--Serv[%s] is offline\n", m_cAddr.GetKey().c_str());
         m_bDisconnect = true;
         return;
     }
@@ -338,25 +286,24 @@ void ZNode::Send()
         string strData;
         pData->SerializePartialToString(&strData);
         //s_sendmore(socket, m_EndPoint.c_str());
-        s_sendmore(m_cP2PSocket, "");
-        s_sendmore(m_cP2PSocket, "data");
-        s_send(m_cP2PSocket, (char*)strData.c_str());
+        sock_send(m_peerFd, "data");
+        sock_send(m_peerFd, strData.c_str());
         m_SendLst.pop_front();
         delete pData;
     }
 }
 
-bool ZNode::ProcessMsg()
+bool PeerNode::ProcessMsg()
 {
-    printf("ZNode::ProcessMsg()---start\n");
+    printf("PeerNode::ProcessMsg()---start\n");
     PB_MessageData* pData = popRecvMsg();
    
     bool bFinish = (!pData);
     if (!bFinish) {
-        printf("ZNode::ProcessMsg()---recv Data\n");
+        printf("PeerNode::ProcessMsg()---recv Data\n");
         PB_MessageData_Mesg_Kind eMsgKind = pData->emsgkind();
         static map<unsigned int, vector<unsigned char> > mapReuseKey;
-        printf("ZNode::ProcessMsg()---recv Data Kind[%d]\n", eMsgKind);
+        printf("PeerNode::ProcessMsg()---recv Data Kind[%d]\n", eMsgKind);
 #if 0
         // 消息采集频率进行处理
         if (nDropMessagesTest > 0 && GetRand(nDropMessagesTest) == 0)
@@ -422,13 +369,13 @@ bool ZNode::ProcessMsg()
         }
 
     }   
-    printf("ZNode::ProcessMsg()---end\n");
+    printf("PeerNode::ProcessMsg()---end\n");
     delete pData;
     pData = NULL;
     return bFinish;
 }
 
-void ZNode::ProcessVerMsg(const Version& cVer)
+void PeerNode::ProcessVerMsg(const Version& cVer)
 {
     // 节点对应的版本只能更新一次，初始为0，后面进行更新
     // Can only do this once
@@ -447,7 +394,7 @@ void ZNode::ProcessVerMsg(const Version& cVer)
     uTime = cVer.utime();
     ::UnSeriaAddress(cVer.addrme(), addrMe);
     if (m_nVersion == 0) {
-        printf("ZNode::ProcessVerMsg Recv Version[%d]\n", m_nVersion);
+        printf("PeerNode::ProcessVerMsg Recv Version[%d]\n", m_nVersion);
         return ;
     }
     // 更新发送和接收缓冲区中的对应的版本
@@ -479,7 +426,7 @@ void ZNode::ProcessVerMsg(const Version& cVer)
 
 }
 
-void ZNode::ProcessAddrMsg(const Address& pbAddr)
+void PeerNode::ProcessAddrMsg(const Address& pbAddr)
 {
     if (m_nVersion == 0)
     {
@@ -493,24 +440,25 @@ void ZNode::ProcessAddrMsg(const Address& pbAddr)
     ::UnSeriaAddress(pbAddr, addr);
     // Store the new addresses
     // 将地址增加到数据库中
+    printf("error %s---%d\n", __FILE__, __LINE__);
+
     if (DaoServ::getInstance()->WriteAddress(addr))
     {
         // Put on lists to send to other nodes
         m_setAddrKnown.insert(addr); // 将对应的地址插入到已知地址集合中
-        map<string, ZNode*>& cZNodeLst = NetWorkServ::getInstance()->getNodeList();
-        foreach(auto it, cZNodeLst) 
+        vector<PeerNode*>& cPeerNodeLst = NetWorkServ::getInstance()->getNodeList();
+        foreach(auto it, cPeerNodeLst) 
         {
-            ZNode* pnode = it.second;
-            if (!pnode->isExsitAddr(addr))
-                pnode->AddAddr2Send(addr);// 地址的广播
+            if (!it->isExsitAddr(addr))
+                it->AddAddr2Send(addr);// 地址的广播
         }
     }
 
 }
 
-void ZNode::ProcessInvMsg(const Inventory& pbInv)
+void PeerNode::ProcessInvMsg(const Inventory& pbInv)
 {
-    printf("ZNode::ProcessInvMsg()---start\n");
+    printf("PeerNode::ProcessInvMsg()---start\n");
     if (m_nVersion == 0)
     {
         // 节点在处理任何消息之前一定有一个版本消息
@@ -533,7 +481,7 @@ void ZNode::ProcessInvMsg(const Inventory& pbInv)
 
 }
 
-void ZNode::ProcessGetDataMsg(const Inventory& pbInv)
+void PeerNode::ProcessGetDataMsg(const Inventory& pbInv)
 {
     if (m_nVersion == 0)
     {
@@ -572,7 +520,7 @@ void ZNode::ProcessGetDataMsg(const Inventory& pbInv)
 
 }
 
-void ZNode::ProcessGetBlockMsg(const GetBlocks& cBks)
+void PeerNode::ProcessGetBlockMsg(const GetBlocks& cBks)
 {
     if (m_nVersion == 0)
     {
@@ -616,7 +564,7 @@ void ZNode::ProcessGetBlockMsg(const GetBlocks& cBks)
 
 }
 
-void ZNode::ProcessTxMsg(const Transaction& pbTx)
+void PeerNode::ProcessTxMsg(const Transaction& pbTx)
 {
     if (m_nVersion == 0)
     {
@@ -676,7 +624,7 @@ void ZNode::ProcessTxMsg(const Transaction& pbTx)
 
 }
 
-void ZNode::ProcessReviewMsg(const Review& cRev)
+void PeerNode::ProcessReviewMsg(const Review& cRev)
 {
     if (m_nVersion == 0)
     {
@@ -702,7 +650,7 @@ void ZNode::ProcessReviewMsg(const Review& cRev)
 }
 
 
-void ZNode::ProcessBlockMsg(const Block& cbk)
+void PeerNode::ProcessBlockMsg(const Block& cbk)
 {
     if (m_nVersion == 0)
     {
@@ -721,12 +669,14 @@ void ZNode::ProcessBlockMsg(const Block& cbk)
     CInv inv(MSG_BLOCK, pblock->GetHash());
     AddInventoryKnown(inv);// 增加库存
 
+    printf("error %s---%d\n", __FILE__, __LINE__);
+
     if (BlockEngine::getInstance()->ProcessBlock(this, pblock.release()))
         NetWorkServ::getInstance()->removeAlreadyAskedFor(inv);
 
 }
 
-void ZNode::ProcessHashReplyMsg(const string& strReply)
+void PeerNode::ProcessHashReplyMsg(const string& strReply)
 {
     if (m_nVersion == 0)
     {
@@ -753,7 +703,7 @@ void ZNode::ProcessHashReplyMsg(const string& strReply)
 
 }
 
-void ZNode::ProcessGetAddrMsg()
+void PeerNode::ProcessGetAddrMsg()
 {
 
     m_vAddrToSend.clear();
@@ -771,7 +721,7 @@ void ZNode::ProcessGetAddrMsg()
 }
 
 
-void ZNode::ProcessSubmitOrderMsg(const Order& cOrd, map<unsigned int, vector<unsigned char> >& mapReuseKey)
+void PeerNode::ProcessSubmitOrderMsg(const Order& cOrd, map<unsigned int, vector<unsigned char> >& mapReuseKey)
 {
     if (m_nVersion == 0)
     {
@@ -804,7 +754,7 @@ void ZNode::ProcessSubmitOrderMsg(const Order& cOrd, map<unsigned int, vector<un
 
 }
 
-void ZNode::ProcessCheckOrderMsg(const Order& cOrd, map<unsigned int, vector<unsigned char> >& mapReuseKey)
+void PeerNode::ProcessCheckOrderMsg(const Order& cOrd, map<unsigned int, vector<unsigned char> >& mapReuseKey)
 {
     if (m_nVersion == 0)
     {
@@ -831,7 +781,7 @@ void ZNode::ProcessCheckOrderMsg(const Order& cOrd, map<unsigned int, vector<uns
 
 }
 
-PB_MessageData* ZNode::popRecvMsg()
+PB_MessageData* PeerNode::popRecvMsg()
 {
     PB_MessageData* pData = NULL;
     std::lock_guard<std::mutex> guard(m_cRcvMtx);
@@ -843,7 +793,7 @@ PB_MessageData* ZNode::popRecvMsg()
     return pData;
 }
 
-void ZNode::SendSelfAddr()
+void PeerNode::SendSelfAddr()
 {
     // 消息发送的地址
     // Message: addr
@@ -863,7 +813,7 @@ void ZNode::SendSelfAddr()
 
 }
 
-void ZNode::SendSelfInv()
+void PeerNode::SendSelfInv()
 {
     // 库存消息处理
     // Message: inventory
@@ -884,7 +834,7 @@ void ZNode::SendSelfInv()
 
 }
 
-void ZNode::SendGetDataReq()
+void PeerNode::SendGetDataReq()
 {
     // getdata消息发送
     // Message: getdata
@@ -904,5 +854,6 @@ void ZNode::SendGetDataReq()
         SendInv(vAskFor, true); //send get Data
 
 }
+
 /* EOF */
 

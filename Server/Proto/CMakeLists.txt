@@ -1,0 +1,45 @@
+cmake_minimum_required(VERSION 3.5)
+
+PROJECT(EnzeProto)
+
+SET(CUR_SRC_DIR "${PROTO_SRC_PATH}")
+
+
+INCLUDE_DIRECTORIES(
+    "${CUR_SRC_DIR}/"
+    "${SRC_ROOT}/"
+    "${SRC_ROOT}/CommonBase"
+    )
+
+SET(PROTOBUF_PROTOC_EXECUTABLE protoc)
+
+SET(SRC_LIST
+    "${CUR_SRC_DIR}/ServerMessage.proto"
+    
+)
+
+EXEC_PROGRAM(rm ARGS -rf ${PROTO_GEN_PATH}/*.cc ${PROTO_GEN_PATH}/*.pb.h)
+
+foreach(FIL ${SRC_LIST})
+    get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
+    get_filename_component(FIL_WE ${FIL} NAME_WE)
+
+    EXEC_PROGRAM(${PROTOBUF_PROTOC_EXECUTABLE} ARGS 
+        --cpp_out=${PROTO_GEN_PATH} 
+        --proto_path=${CUR_SRC_DIR} ${ABS_FIL} )
+    
+    SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
+    LIST(APPEND {PROTO_SRCS} "${PROTO_GEN_PATH}/${FIL_WE}.pb.cc")
+    LIST(APPEND {PROTO_HDRS} "${PROTO_GEN_PATH}/${FIL_WE}.pb.h")
+    
+endforeach()
+
+#PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${SRC_LIST})
+
+SET(PROTO_SRCS
+    "${PROTO_GEN_PATH}/ServerMessage.pb.cc"
+    )
+
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${PROTO_SRCS} )
+
+INSTALL (TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_PATH})

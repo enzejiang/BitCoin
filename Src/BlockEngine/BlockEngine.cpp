@@ -25,7 +25,7 @@
 #include "CommonBase/uint256.h"
 #include "CommonBase/base58.h"
 #include "NetWorkService/NetWorkServ.h"
-#include"NetWorkService/ZMQNode.h"
+#include "NetWorkService/PeerNode.h"
 #include "BlockEngine/CBlock.h"
 #include "BlockEngine/CBlockIndex.h"
 #include "BlockEngine/CBlockLocator.h"
@@ -78,7 +78,7 @@ BlockEngine::BlockEngine()
 
 
     // Settings
-    fGenerateBitcoins = 1; // 是否挖矿，产生比特币
+    fGenerateBitcoins = 0; // 是否挖矿，产生比特币
     mapBlockIndex.clear();
 }
 
@@ -297,7 +297,7 @@ bool BlockEngine::Reorganize(CBlockIndex* pindexNew)
 }
 
 // 处理区块，不管是接收到的还是自己挖矿得到的
-bool BlockEngine::ProcessBlock(ZNode* pfrom, CBlock* pblock)
+bool BlockEngine::ProcessBlock(PeerNode* pfrom, CBlock* pblock)
 {
     // Check for duplicate
     uint256 hash = pblock->GetHash();
@@ -733,7 +733,7 @@ bool BlockEngine::BitcoinMiner()
         sleep(50);
 #if 0
         CheckForShutdown(3);
-        while (m_ZNodeList.empty())
+        while (m_PeerNodeList.empty())
         {
             sleep(30);
             CheckForShutdown(3);

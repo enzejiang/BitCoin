@@ -35,7 +35,7 @@ class CCoinBase;
 class CBlock;
 class CBlockIndex;
 class CKeyItem;
-class ZNode;
+class PeerNode;
 class CScript;
 class CAddress;
 class CTransaction;
@@ -52,7 +52,7 @@ public:
     uint256 GetOrphanRoot(const CBlock* pblock);
     unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast);
     bool Reorganize(CBlockIndex* pindexNew);
-    bool ProcessBlock(ZNode* pfrom, CBlock* pblock);
+    bool ProcessBlock(PeerNode* pfrom, CBlock* pblock);
     string GetAppDir();
     bool CheckDiskSpace(int64 nAdditionalBytes=0);
     FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");

@@ -1,0 +1,12 @@
+
+syntax = "proto3";
+message endPoint
+{
+    uint32  ip = 2;
+    uint32  port = 3;
+}
+
+message ServMsg
+{
+    repeated endPoint epList = 1;
+}

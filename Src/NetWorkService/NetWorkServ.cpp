@@ -33,6 +33,7 @@
 #include "BlockEngine/CBlockIndex.h"
 #include "BlockEngine/CBlockLocator.h"
 #include "BlockEngine/BlockEngine.h"
+#include "ProtocSrc/ServerMessage.pb.h"
 #include "NetWorkServ.h"
 #include "CInv.h"
 using namespace Enze;
@@ -221,40 +222,6 @@ bool NetWorkServ::GetMyExternalIP(unsigned int& ipRet)
 }
 
 
-void NetWorkServ::AddNewAddrByEndPoint(const char* endPoint)
-{
-    if (NULL == endPoint) return;
-    
-    // endPoint format is [tcp://ip:port]
-    int headLen = strlen("tcp://");
-    if (0 != strncmp(endPoint, "tcp://", headLen)) 
-        return;
-    
-    CAddress addr(endPoint+headLen, NODE_NETWORK);
-    // 根据地址的ip+port来查询对应的内存对象m_cMapAddresses，
-    map<string, CAddress>::iterator it = m_cMapAddresses.find(addr.GetKey());
-    if (it == m_cMapAddresses.end())
-    {
-        printf("NetWorkServ::AddNewAddrByEndPoint--add-into db\n");
-        // New address
-        m_cMapAddresses.insert(make_pair(addr.GetKey(), addr));
-        DaoServ::getInstance()->WriteAddress(addr);
-    }
-    else
-    {
-        CAddress& addrFound = (*it).second;
-        if ((addrFound.m_nServices | addr.m_nServices) != addrFound.m_nServices)
-        {
-              printf("NetWorkServ::AddNewAddrByEndPoint--update-into db\n");
-            // 增加地址对应的服务类型，并将其写入数据库
-            // Services have been added
-            addrFound.m_nServices |= addr.m_nServices;
-            DaoServ::getInstance()->WriteAddress(addrFound);
-        }
-    }
-}
-
-
 
 bool NetWorkServ::AddUserProviedAddress()
 {
@@ -304,114 +271,53 @@ bool NetWorkServ::AddUserProviedAddress()
     return true;
 }
 
-// 根据ip在本地存储的节点列表m_cZNodeLst中查找对应的节点
-ZNode* NetWorkServ::FindNode(unsigned int ip)
+// 根据ip在本地存储的节点列表m_cPeerNodeLst中查找对应的节点
+PeerNode* NetWorkServ::FindNode(unsigned int ip)
 {
-    foreach(auto it, m_cZNodeLst)
+    foreach(auto it, m_cPeerNodeLst)
     {
-        ZNode* pnode = it.second;
-        if (pnode->getAddr().ip == ip)
-            return (pnode);
+        if (it->getAddr().ip == ip)
+            return it;
     }
 
 
     return NULL;
 }
 
-ZNode* NetWorkServ::FindNode(const CAddress& addr)
+PeerNode* NetWorkServ::FindNode(const CAddress& addr)
 {
 
-    foreach(auto it, m_cZNodeLst)
+    foreach(auto it, m_cPeerNodeLst)
     {
-        ZNode* pnode = it.second;
-        if (pnode->getAddr() == addr)
-            return (pnode);
+        if (it->getAddr() == addr)
+            return (it);
     }
-
-
     return NULL;
-}
-
-ZNode* NetWorkServ::FindNode(const char* endPoint)
-{
-    ZNode* pNode = NULL;
-    if (endPoint)
-    {
-        auto it = m_cZNodeLst.find(endPoint);
-        if (it != m_cZNodeLst.end()) {
-            pNode = it->second;
-        }
-    }
-    
-    return pNode;
-}
-
-ZNode* NetWorkServ::ConnectNode(const char* endPoint)
-{
-    ZNode* pNode = NULL;
-    if (endPoint) {
-        CAddress cAddr(endPoint+4);
-        pNode = FindNode(endPoint);
-        if (!pNode) {
-            pNode = new ZNode(m_strIdentity, m_cZmqCtx, endPoint);
-            if (pNode->pingNode())
-            {
-                pNode->AddRef();
-                pNode->SendVersion();
-                m_cZNodeLst.insert(pair<string, ZNode*>(pNode->getServId(),pNode));
-
-                m_cMapAddresses[cAddr.GetKey()].nLastFailed = 0;
-            } 
-            else {
-                delete pNode;
-                m_cMapAddresses[cAddr.GetKey()].nLastFailed = GetTime();
-            
-            }
-        }
-        else {
-            if (!pNode->pingNode()) {
-                pNode->Disconnect();
-                m_cMapAddresses[cAddr.GetKey()].nLastFailed = GetTime();
-                return NULL;
-            }
-        }
-        
-    } 
-    
-    return pNode;
-
 }
 
 // 链接对应地址的节点
-ZNode* NetWorkServ::ConnectNode(const CAddress& addrConnect, int64 nTimeout)
+PeerNode* NetWorkServ::ConnectNode(const CAddress& addrConnect, int64 nTimeout)
 {
     if (addrConnect.ip == m_cAddrLocalHost.ip)
         return NULL;
 
 	// 使用ip地址在本地对应的节点列表中查找对应的节点，如果存在则直接返回对应的节点
     // Look for an existing connection
-    ZNode* pnode = FindNode(addrConnect.ip);
+    PeerNode* pnode = FindNode(addrConnect);
     if (pnode)
     {
-        if (pnode->pingNode()) {
-            if (nTimeout != 0)
-                pnode->AddRef(nTimeout); // 推迟节点对应的释放时间
-            else
-                pnode->AddRef(); // 增加节点对应的引用
-            return pnode; 
-        }
-        else {
-            pnode->Disconnect();
-            m_cMapAddresses[addrConnect.GetKey()].nLastFailed = GetTime(); 
-            return NULL;
-        }
+        if (nTimeout != 0)
+            pnode->AddRef(nTimeout); // 推迟节点对应的释放时间
+        else
+            pnode->AddRef(); // 增加节点对应的引用
+        return pnode;
     }
 
     /// debug print
 
 	// 对请求的地址进行连接
     // Connect
-    pnode = new ZNode(m_strIdentity, m_cZmqCtx, addrConnect, false);
+    pnode = new PeerNode(addrConnect, false);
     if (pnode->pingNode())
     {
         if (nTimeout != 0)
@@ -420,7 +326,8 @@ ZNode* NetWorkServ::ConnectNode(const CAddress& addrConnect, int64 nTimeout)
             pnode->AddRef();
 
         pnode->SendVersion();
-        m_cZNodeLst.insert(pair<string, ZNode*>(pnode->getServId(),pnode));
+        pnode->setLastActiveTime(GetTime());
+        m_cPeerNodeLst.push_back(pnode);
 
         m_cMapAddresses[addrConnect.GetKey()].nLastFailed = 0;
         return pnode;
@@ -433,7 +340,7 @@ ZNode* NetWorkServ::ConnectNode(const CAddress& addrConnect, int64 nTimeout)
 }
 
 // 处理单个节点对应的消息：单个节点接收到的消息进行处理
-bool NetWorkServ::ProcessMessages(ZNode* pfrom)
+bool NetWorkServ::ProcessMessages(PeerNode* pfrom)
 {
 
     if (!pfrom) true;
@@ -456,7 +363,7 @@ bool NetWorkServ::ProcessMessages(ZNode* pfrom)
 
 
 // 处理节点对应的消息发送
-bool NetWorkServ::SendMessages(ZNode* pto)
+bool NetWorkServ::SendMessages(PeerNode* pto)
 {
 
     printf("%s---%d\n", __FILE__, __LINE__);
@@ -480,7 +387,7 @@ void NetWorkServ::AbandonRequests(/*void (*fn)(void*, CDataStream&), void* param
 #if 0
     // If the dialog might get closed before the reply comes back,
     // call this in the destructor so it doesn't get called after it's deleted.
-    foreach(ZNode* pnode, m_cZNodeLst)
+    foreach(PeerNode* pnode, m_cPeerNodeLst)
     {
         for (map<uint256, CRequestTracker>::iterator mi = pnode->mapRequests.begin(); mi != pnode->mapRequests.end();)
         {
@@ -500,7 +407,7 @@ bool NetWorkServ::AnySubscribed(unsigned int nChannel)
 #if 0
     if (m_pcNodeLocalHost->IsSubscribed(nChannel))
         return true;
-    foreach(ZNode* pnode, m_cZNodeLst)
+    foreach(PeerNode* pnode, m_cPeerNodeLst)
         if (pnode->IsSubscribed(nChannel))
             return true;
     return false;
@@ -509,15 +416,110 @@ bool NetWorkServ::AnySubscribed(unsigned int nChannel)
 
 bool NetWorkServ::LoadAddresses()
 {
+    std::lock_guard<std::mutex> guard(m_cAddrMutex);
     DaoServ::getInstance()->LoadAddresses(m_cMapAddresses);
     AddUserProviedAddress();
+}
+
+void NetWorkServ::AddAddress(const ServMsg& cMsg)
+{
+     std::lock_guard<std::mutex> guard(m_cAddrMutex);
+     foreach(auto ep, cMsg.eplist()) {
+        CAddress addr(ep.ip(), ep.port());
+        // 根据地址的ip+port来查询对应的内存对象m_cMapAddresses，
+        map<string, CAddress>::iterator it = m_cMapAddresses.find(addr.GetKey());
+        if (it == m_cMapAddresses.end())
+        {
+            printf("NetWorkServ::AddAddress(const ServMsg&)--add-into db\n");
+            // New address
+            m_cMapAddresses.insert(make_pair(addr.GetKey(), addr));
+            DaoServ::getInstance()->WriteAddress(addr);
+            continue;
+        }
+        else
+        {
+            CAddress& addrFound = (*it).second;
+            if ((addrFound.m_nServices | addr.m_nServices) != addrFound.m_nServices)
+            {
+                  printf("NetWorkServ::AddAddress(const ServMsg&)--update-into db\n");
+                // 增加地址对应的服务类型，并将其写入数据库
+                // Services have been added
+                addrFound.m_nServices |= addr.m_nServices;
+                DaoServ::getInstance()->WriteAddress(addrFound);
+            }
+            continue;
+        }
+     }
+}
+    
+vector<unsigned int> NetWorkServ:: getIPCList()
+{
+    std::lock_guard<std::mutex> guard(m_cAddrMutex);
+    // Ip对应的C类地址，相同的C类地址放在一起
+    // Make a list of unique class C's
+    unsigned char pchIPCMask[4] = { 0xff, 0xff, 0xff, 0x00 };
+    unsigned int nIPCMask = *(unsigned int*)pchIPCMask;
+    vector<unsigned int> vIPC;
+    vIPC.reserve(m_cMapAddresses.size());
+    unsigned int nPrev = 0;
+    // mapAddress已经进行排序了，默认是生效排序
+    foreach(const PAIRTYPE(string, CAddress)& item, m_cMapAddresses)
+    {
+        const CAddress& addr = item.second;
+        if (!addr.IsIPv4())
+            continue;
+        // Taking advantage of m_cMapAddresses being in sorted order,
+        // with IPs of the same class C grouped together.
+        unsigned int ipC = addr.ip & nIPCMask;
+        if (ipC != nPrev)
+            vIPC.push_back(nPrev = ipC);
+    }
+
+    return vIPC;
+}
+
+map<unsigned int, vector<CAddress> > NetWorkServ::selectIp(unsigned int ipC)
+{
+
+    // IP选择的过程
+    // The IP selection process is designed to limit vulnerability致命性 to address flooding.
+    // Any class C (a.b.c.?) has an equal chance of being chosen, then an IP is
+    // chosen within the class C.  An attacker may be able to allocate many IPs, but
+    // they would normally be concentrated in blocks of class C's.  They can hog独占 the
+    // attention within their class C, but not the whole IP address space overall.
+    // A lone node in a class C will get as much attention as someone holding all 255
+    // IPs in another class C.
+    /*
+    map::lower_bound(key):返回map中第一个大于或等于key的迭代器指针
+    map::upper_bound(key):返回map中第一个大于key的迭代器指针
+    */
+    std::lock_guard<std::mutex> guard(m_cAddrMutex);
+    map<unsigned int, vector<CAddress> > mapIP;
+    unsigned char pchIPCMask[4] = { 0xff, 0xff, 0xff, 0x00 };
+    unsigned int nIPCMask = *(unsigned int*)pchIPCMask;
+    for (map<string, CAddress>::const_iterator mi = m_cMapAddresses.lower_bound(CAddress(ipC, 0).GetKey());
+         mi != m_cMapAddresses.upper_bound(CAddress(ipC | ~nIPCMask, 0xffff).GetKey());
+         ++mi)
+    {
+        
+//           printf("NetWorkServ::OpenConnections----6\n");
+        const CAddress& addr = (*mi).second;
+        //if (fIRCOnly && !mapIRCAddresses.count((*mi).first))
+        //    continue;
+
+        // 当前时间 - 地址连接最新失败的时间 要大于对应节点重连的间隔时间
+        if (GetTime() - addr.nLastFailed > 12)
+            mapIP[addr.ip].push_back(addr); //同一个地址区段不同地址： 同一个地址的不同端口，所有对应同一个ip会有多个地址
+    }
+
+    return mapIP;
 }
 
 NetWorkServ::NetWorkServ()
 : m_cAddrLocalHost(0, DEFAULT_PORT, m_nLocalServices)
 {
     m_cZmqCtx = zmq_ctx_new();
-    ZNode* m_pcNodeLocalHost = new ZNode(" ", m_cZmqCtx, CAddress("127.0.0.1", m_nLocalServices)); // 本地节点
+    //PeerNode* m_pcNodeLocalHost = new PeerNode(" ", m_cZmqCtx, CAddress("127.0.0.1", m_nLocalServices)); // 本地节点
 
 }
 

@@ -113,7 +113,7 @@ void TestTxSend::StartTransfer()
     // We may have connected already for product details
     if (!Status("Connecting..."))
         return;
-    ZNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
+    PeerNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
     if (!pnode)
     {
         error("Unable to connect");
@@ -159,7 +159,7 @@ void TestTxSend::OnReply2(CDataStream& vRecv)
     }
 
     // Should already be connected
-    ZNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
+    PeerNode* pnode = Enze::NetWorkServ::getInstance()->ConnectNode(addr, 5 * 60);
     if (!pnode)
     {
         error("Lost connection");

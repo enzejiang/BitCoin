@@ -18,12 +18,14 @@
 
 #ifndef EZ_BT_NWS_H
 #define EZ_BT_NWS_H
+#include <mutex>
 #include "CAddress.h"
-#include "ZMQNode.h"
+#include "PeerNode.h"
 #include "zhelpers.h"
+#include "CommonBase/ThreadGuard.h"
 namespace Enze
 {
-
+    class ServMsg;
     class CInv;
     class NetWorkServ
     {
@@ -33,18 +35,14 @@ namespace Enze
         public:
             void initiation();
             bool ConnectSocket(const CAddress& addrConnect, SOCKET& hSocketRet);
-            ZNode* FindNode(unsigned int ip);
-            ZNode* FindNode(const CAddress& addr);
-            ZNode* FindNode(const char* endPoint);
-            ZNode* ConnectNode(const CAddress& addrConnect, int64 nTimeout=0);
-            ZNode* ConnectNode(const char* endPoint);
+            PeerNode* FindNode(unsigned int ip);
+            PeerNode* FindNode(const CAddress& addr);
+            PeerNode* ConnectNode(const CAddress& addrConnect, int64 nTimeout=0);
             bool StartNode();
             bool StopNode();
     
-            template<typename Stream>
-            bool ScanMessageStart(Stream& s);
-            bool ProcessMessages(ZNode* pfrom);
-            bool SendMessages(ZNode* pto);
+            bool ProcessMessages(PeerNode* pfrom);
+            bool SendMessages(PeerNode* pto);
             
             void CheckForShutdown(int n);
             void AbandonRequests(/*void (*fn)(void*, CDataStream&), void* param1*/);
@@ -53,9 +51,9 @@ namespace Enze
             {
                 return m_cMapAddresses; 
             }
-            map<string, ZNode*>& getNodeList()
+            vector<PeerNode*>& getNodeList()
             {
-                return m_cZNodeLst;
+                return m_cPeerNodeLst;
             }
             
             const CAddress& getLocakAddr()
@@ -78,28 +76,38 @@ namespace Enze
             void OpenConnections();
             void NodeSyncThread();
             void MessageRecv();
+            
+            void AddrManagerThread();
+            
         private:
             NetWorkServ();
             ~NetWorkServ();
-        
             bool LoadAddresses();
             bool AddUserProviedAddress();
             void AddNewAddrByEndPoint(const char* endPoint);
             bool GetMyExternalIP(unsigned int& ipRet);
             bool GetMyExternalIP2(const CAddress& addrConnect, 
                                     const char* pszGet, const char* pszKeyword, unsigned int& ipRet);
+        
+            void AddAddress(const ServMsg& cMsg);
+        
+            map<unsigned int, vector<CAddress> > selectIp(unsigned int ipC);
+            vector<unsigned int> getIPCList();
         private:
             
             int nDropMessagesTest = 0; // 消息采集的频率，即是多个少消息采集一次进行处理
+            int m_iSocketFd = 0;
             bool m_bClient = false;
             uint64 m_nLocalServices = (m_bClient ? 0 : NODE_NETWORK);
             CAddress m_cAddrLocalHost;// = new CAddress(0, DEFAULT_PORT, m_nLocalServices);// 本地主机地址
-            ZNode* m_pcNodeLocalHost;// = new ZNode(INVALID_SOCKET, CAddress("127.0.0.1", m_nLocalServices)); // 本地节点
+            PeerNode* m_pcNodeLocalHost;// = new PeerNode(INVALID_SOCKET, CAddress("127.0.0.1", m_nLocalServices)); // 本地节点
             
-            map<string, ZNode*> m_cZNodeLst; // key:Endpoint. value is node
+            vector<PeerNode*> m_cPeerNodeLst; //value is node
             map<string, CAddress> m_cMapAddresses;
             CAddress addrProxy;
 
+            list<ThreadGuard*> m_ThreadList;
+            std::mutex m_cAddrMutex;
             deque<pair<int64, CInv> > vRelayExpiration;
             map<CInv, int64> mapAlreadyAskedFor;
             void* m_cZmqCtx; 
@@ -113,8 +121,8 @@ namespace Enze
                 printf("%s---%d\n", __FILE__, __LINE__);
                 // 将此节点相连的所有节点进行转播此信息
                 // Put on lists to offer to the other nodes
-                foreach(auto it, m_cZNodeLst) {
-                    ZNode * pnode =  it.second;
+                foreach(auto it, m_cPeerNodeLst) {
+                    PeerNode * pnode =  it;
                     pnode->PushInventory(inv);
                 }
             }
@@ -163,7 +171,7 @@ namespace Enze
             //
 
             template<typename T>
-            void AdvertStartPublish(ZNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
+            void AdvertStartPublish(PeerNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
             {
                 // Add to sources
                 obj.setSources.insert(pfrom->getAddr().ip);
@@ -172,17 +180,17 @@ namespace Enze
                     return;
                 printf("%s---%d\n", __FILE__, __LINE__);
                 // Relay
-                //foreach(ZNode* pnode, m_cZNodeLst)
+                //foreach(PeerNode* pnode, m_cPeerNodeLst)
                     //if (pnode != pfrom && (nHops < PUBLISH_HOPS || pnode->IsSubscribed(nChannel)))
                         //pnode->PushMessage("publish", nChannel, nHops, obj);
             }
 
             template<typename T>
-            void AdvertStopPublish(ZNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
+            void AdvertStopPublish(PeerNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
             {
                 uint256 hash = obj.GetHash();
                 printf("%s---%d\n", __FILE__, __LINE__);
-                //foreach(ZNode* pnode, m_cZNodeLst)
+                //foreach(PeerNode* pnode, m_cPeerNodeLst)
                 //    if (pnode != pfrom && (nHops < PUBLISH_HOPS || pnode->IsSubscribed(nChannel)))
                 //        pnode->PushMessage("pub-cancel", nChannel, nHops, hash);
 
@@ -190,7 +198,7 @@ namespace Enze
             }
 
             template<typename T>
-            void AdvertRemoveSource(ZNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
+            void AdvertRemoveSource(PeerNode* pfrom, unsigned int nChannel, unsigned int nHops, T& obj)
             {
                 // Remove a source
                 obj.setSources.erase(pfrom->getAddr().ip);

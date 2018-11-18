@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  ZMQNode.h
+ *       Filename:  PeerNode.h
  *
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  10/20/2018 07:38:44 PM
+ *        Created:  11/17/2018 03:31:43 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -15,9 +15,9 @@
  *
  * =====================================================================================
  */
+#ifndef EZ_BT_PEER_NODE_H
+#define EZ_BT_PEER_NODE_H
 
-#ifndef EN_BT_ZMQ_NODE_H
-#define EN_BT_ZMQ_NODE_H
 #include <mutex>
 #include "ProtocSrc/Message.pb.h"
 #include "CRequestTracker.h"
@@ -30,12 +30,11 @@ class CBlockLocator;
 class CTransaction;
 class CBlock;
 
-class ZNode 
+class PeerNode 
 {
 public:
-    ZNode(const string& id, void* ctx, const CAddress& addrIn, bool fInboundIn=false);
-    ZNode(const string& id, void* ctx, const char* endPoint);
-    ~ZNode();
+    PeerNode(const CAddress& addrIn, bool fInboundIn=false);
+    ~PeerNode();
       
     void Disconnect();
     // 准备释放链接
@@ -67,7 +66,6 @@ public:
     void SendGetAddrRequest();
     void SendInv(const vector<CInv>& vInv, bool bReqInv); 
     bool pingNode();
-    const char* getServId()const;
     
     void AddRecvMessage(PB_MessageData* pRecvData);
     bool ProcessMsg();
@@ -82,6 +80,16 @@ public:
     inline int64 getReleaseTime()const
     {
         return m_nReleaseTime;
+    }
+    
+    inline void setLastActiveTime(int64 nTime)
+    {
+        m_nLastActiveTime = nTime;
+    }
+    
+    inline int64 getLastActiveTime()const
+    {
+        return m_nLastActiveTime;
     }
    
     inline void setNetworkState(bool bNetworkNode)
@@ -109,9 +117,9 @@ public:
         return m_cAddr;
     }
     
-    inline void* getPeerSock() 
+    inline int getPeerSock() 
     {
-        return m_cP2PSocket;
+        return m_peerFd;
     
     }
     
@@ -156,19 +164,17 @@ private:
     PB_MessageData* popRecvMsg();
     
 private:
-        bool m_bInbound;
-        bool m_bNetworkNode; // 设置对应的节点为网络节点，是因为从对应的本地节点列表中没有查询到
-        bool m_bDisconnect; // 端口链接的标记
-        bool m_bClient;// 比较是否是客户端，如果是客户端则需要区块的头部进行校验就可以了,不需要保存整个区块的内容
-        int m_nRefCount; // 使用技术器
-        int m_nVersion; // 节点对应的版本，如果节点版本为0，则消息发送不出去
-        int64 m_nReleaseTime; // 节点释放的时间
-        uint64 m_nServices;
+        bool m_bInbound = false;
+        bool m_bNetworkNode = false; // 设置对应的节点为网络节点，是因为从对应的本地节点列表中没有查询到
+        bool m_bDisconnect = false; // 端口链接的标记
+        bool m_bClient = false;// 比较是否是客户端，如果是客户端则需要区块的头部进行校验就可以了,不需要保存整个区块的内容
+        int m_nRefCount = 0; // 使用技术器
+        int m_nVersion = 0; // 节点对应的版本，如果节点版本为0，则消息发送不出去
+        int  m_peerFd = 0;
+        int64 m_nReleaseTime = 0; // 节点释放的时间
+        int64 m_nLastActiveTime = 0; // 节点释放的时间
+        uint64 m_nServices = 0;
         CAddress m_cAddr;
-        string m_Id;
-        string m_EndPoint;
-        string m_ServId;
-        void*  m_cP2PSocket;
         list<PB_MessageData*> m_SendLst; // 发送缓存区
         list<PB_MessageData*> m_RecvLst; // 接收缓冲区
         std::mutex m_cSndMtx;
@@ -186,11 +192,10 @@ private:
         vector<CInv> m_vInventoryToSend; //库存准备发送的集合，对库存准备发送的集合根据已知库存的集合进行过滤之后在发送
         multimap<int64, CInv> m_mapAskFor; // 咨询请求映射，key为时间（单位到微秒）
 private:
-        ZNode(const ZNode&)= delete;
-        ZNode() = delete;
-        ZNode operator =(const ZNode&) = delete;
+        PeerNode(const PeerNode&)= delete;
+        PeerNode() = delete;
+        PeerNode operator =(const PeerNode&) = delete;
 };
-
 
 
 
@@ -198,6 +203,6 @@ private:
 
 
 
-#endif /* EN_BT_ZMQ_NODE_H */
+#endif /* EZ_BT_PEER_NODE_H */
 /* EOF */
 

@@ -1,0 +1,29 @@
+cmake_minimum_required(VERSION 3.5)
+
+PROJECT(BTServ)
+
+SET(CUR_SRC_DIR "${SRC_ROOT}")
+
+
+INCLUDE_DIRECTORIES(
+    "${PROTO_SRC_PATH}"
+    "${CUR_SRC_DIR}/"
+    )
+
+
+SET(SRC_LIST
+    "${CUR_SRC_DIR}/main.cpp"
+    "${CUR_SRC_DIR}/UdpSocket.cpp"
+)
+
+
+#ADD_LIBRARY(${PROJECT_NAME} SHARED ${SRC_LIST})
+ADD_EXECUTABLE(${PROJECT_NAME} ${SRC_LIST})
+
+TARGET_LINK_LIBRARIES ( ${PROJECT_NAME}
+        "EnzeProto"
+        "zmq"
+        "${Protobuf_LIBRARIES}"
+    )
+
+INSTALL (TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_PATH})

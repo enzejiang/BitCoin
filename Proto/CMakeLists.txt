@@ -30,6 +30,7 @@ SET(SRC_LIST
     "${CUR_SRC_DIR}/TxIndex.proto"
     "${CUR_SRC_DIR}/DiskBlockIndex.proto"
     "${CUR_SRC_DIR}/WalletTx.proto"
+    "${CUR_SRC_DIR}/ServerMessage.proto"
     
 )
 
@@ -68,6 +69,7 @@ SET(PROTO_SRCS
     "${PROTO_GEN_PATH}/TxIndex.pb.cc"
     "${PROTO_GEN_PATH}/DiskBlockIndex.pb.cc"
     "${PROTO_GEN_PATH}/WalletTx.pb.cc"
+    "${PROTO_GEN_PATH}/ServerMessage.pb.cc"
     #    "${PROTO_GEN_PATH}/ProtocSerialize.cpp"
     )
 

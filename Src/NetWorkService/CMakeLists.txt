@@ -14,9 +14,11 @@ INCLUDE_DIRECTORIES(
 
 SET(SRC_LIST
     "${CUR_SRC_DIR}/irc.cpp"
-    "${CUR_SRC_DIR}/ZMQNode.cpp"
+    #"${CUR_SRC_DIR}/ZMQNode.cpp"
     "${CUR_SRC_DIR}/NetWorkThread.cpp"
     "${CUR_SRC_DIR}/NetWorkServ.cpp"
+    "${CUR_SRC_DIR}/PeerNode.cpp"
+    "${CUR_SRC_DIR}/SocketWraper.cpp"
 )
 
 

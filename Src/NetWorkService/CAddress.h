@@ -130,8 +130,8 @@ public:
     {
         struct sockaddr_in sockaddr;
         sockaddr.sin_family = AF_INET;
-        sockaddr.sin_addr.s_addr = ip;
-        sockaddr.sin_port = port;
+        sockaddr.sin_addr.s_addr = (ip);
+        sockaddr.sin_port = (port);
         return sockaddr;
     }
 
