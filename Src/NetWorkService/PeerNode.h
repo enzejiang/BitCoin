@@ -33,7 +33,7 @@ class CBlock;
 class PeerNode 
 {
 public:
-    PeerNode(const CAddress& addrIn, bool fInboundIn=false);
+    PeerNode(const CAddress& addrIn, int socketFd, bool fInboundIn=false);
     ~PeerNode();
       
     void Disconnect();
@@ -66,10 +66,10 @@ public:
     void SendGetAddrRequest();
     void SendInv(const vector<CInv>& vInv, bool bReqInv); 
     bool pingNode();
-    
+    bool repPong();
     void AddRecvMessage(PB_MessageData* pRecvData);
     bool ProcessMsg();
-    void Recv();
+    void Recv(const char* pData);
     void Send();
    
     inline void setReleaseTime(int64 nTime)

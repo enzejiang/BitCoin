@@ -35,6 +35,7 @@
 #include "BlockEngine/BlockEngine.h"
 #include "ProtocSrc/ServerMessage.pb.h"
 #include "NetWorkServ.h"
+#include "SocketWraper.h"
 #include "CInv.h"
 using namespace Enze;
 NetWorkServ* NetWorkServ::m_pInstance = NULL;
@@ -320,7 +321,7 @@ PeerNode* NetWorkServ::ConnectNode(const CAddress& addrConnect, int64 nTimeout)
 
 	// 对请求的地址进行连接
     // Connect
-    pnode = new PeerNode(addrConnect, false);
+    pnode = new PeerNode(addrConnect, m_iSocketFd,false);
     if (pnode->pingNode())
     {
         if (nTimeout != 0)
@@ -516,6 +517,193 @@ map<unsigned int, vector<CAddress> > NetWorkServ::selectIp(unsigned int ipC)
     }
 
     return mapIP;
+}
+
+void NetWorkServ::AddrConvertPeerNode()
+{
+    vector<unsigned int> vIPC = getIPCList();     
+    bool fSuccess = false;
+    int nLimit = vIPC.size();
+    while (!fSuccess && nLimit-- > 0)
+    {
+        // Choose a random class C
+        unsigned int ipC = vIPC[GetRand(vIPC.size())];
+        // Organize all addresses in the class C by IP
+        map<unsigned int, vector<CAddress> > mapIP = selectIp(ipC);
+        if (mapIP.empty())
+            break;
+        // Choose a random IP in the class C
+        map<unsigned int, vector<CAddress> >::iterator mi = mapIP.begin();
+        boost::iterators::advance_adl_barrier::advance(mi, GetRand(mapIP.size())); // 将指针定位到随机位置
+        //advance(mi, GetRand(mapIP.size())); // 将指针定位到随机位置
+
+        // Once we've chosen an IP, we'll try every given port before moving on
+        foreach(const CAddress& addrConnect, (*mi).second)
+        {
+            printf("OpenConnection,LocalIP[%s], addrConnect_ip[%s]\n", m_cAddrLocalHost.ToStringIP().c_str(), addrConnect.ToStringIP().c_str());
+            // ip不能是本地ip，且不能是非ipV4地址，对应的ip地址不在本地的节点列表中
+            if (addrConnect.ip == m_cAddrLocalHost.ip || !addrConnect.IsIPv4() || FindNode(addrConnect))
+                continue;
+            // 链接对应地址信息的节点
+            PeerNode* pnode = ConnectNode(addrConnect);
+            if (!pnode)
+                continue;
+            pnode->setNetworkState(true);
+
+            // 如果本地主机地址能够进行路由，则需要广播我们的地址
+            if (m_cAddrLocalHost.IsRoutable())
+            {
+                // Advertise our address
+                vector<CAddress> vAddrToSend;
+                vAddrToSend.push_back(m_cAddrLocalHost);
+                pnode->SendAddr(vAddrToSend);// 将消息推送出去放入vsend中，在消息处理线程中进行处理
+            }
+
+            // 从创建的节点获得尽可能多的地址信息，发送消息，在消息处理线程中进行处理
+            // Get as many addresses as we can
+            pnode->SendGetAddrRequest();
+            fSuccess = true;
+            break;
+        }
+    }
+
+}
+
+void NetWorkServ::DealPeerNodeMsg(void* zmqSock)
+{
+    if (NULL == zmqSock) return;
+    long timeout = 1000 * 5; // 5s
+    zmq_pollitem_t items[] = {{zmqSock, 0, ZMQ_POLLIN, 0}};
+    int retCnt = zmq_poll(items, 1, timeout);
+    if ( -1 == retCnt) {
+        printf("%s---%d\n", __FILE__, __LINE__);
+        return;
+    }
+
+    if (0 != retCnt) {
+        if (items[0].revents & ZMQ_POLLIN) {
+            char* buf = s_recv(zmqSock);
+            printf("DealPeerNode Msg ---1[%s]\n", buf);
+            char* Straddr = s_recv(zmqSock);
+            printf("DealPeerNode Msg ---2[%s]\n", Straddr);
+            CAddress cAddr(Straddr);
+            if (NULL == buf) {
+                return;
+            }
+            PeerNode* pNode = FindNode(cAddr);
+            if (!pNode) {
+                pNode=ConnectNode(cAddr);
+                printf("New Node Come in addr[%s], Straddr[%s]\n", cAddr.ToString().c_str(), Straddr);
+            }
+            pNode->AddRef();
+            pNode->setLastActiveTime(GetTime());
+            if (0 == strcmp("ping", buf)) {
+                pNode->repPong();
+            }
+            else if (0 == strcmp("data", buf)){
+                printf("DealPeerNode[%s]Recv Data\n", Straddr);
+                char* pData = s_recv(zmqSock);
+                pNode->Recv(pData);
+                free(pData);
+            }
+            else {
+                printf("Recv Data [%s]\n", buf);
+            }
+            pNode->Release();
+            free(buf);
+            free(Straddr);
+        }
+    }
+
+}
+
+void NetWorkServ::UpdatePeerNodeStatu()
+{
+    // Disconnect duplicate connections 释放同一个ip重复链接对应的节点，可能是不同端口
+    list<PeerNode*> cPeerNodeLstDisconnected;
+    map<unsigned int, PeerNode*> mapFirst;
+    foreach(auto it, m_cPeerNodeLst)
+    {
+        PeerNode* pnode= it;
+        if (pnode->isDistconnect())
+            continue;
+        unsigned int ip = pnode->getAddr().ip;
+        // 本地主机ip地址对应的是0，所以所有的ip地址都应该大于这个ip
+        if (mapFirst.count(ip) && m_cAddrLocalHost.ip < ip)
+        {
+            // In case two nodes connect to each other at once,
+            // the lower ip disconnects its outbound connection
+            PeerNode* pnodeExtra = mapFirst[ip];
+
+            if (pnodeExtra->GetRefCount() > (pnodeExtra->isNetworkNode() ? 1 : 0))
+                std::swap(pnodeExtra, pnode);
+
+            if (pnodeExtra->GetRefCount() <= (pnodeExtra->isNetworkNode() ? 1 : 0))
+            {
+                printf("(%d nodes) disconnecting duplicate: %s\n", m_cPeerNodeLst.size(), pnodeExtra->getAddr().ToString().c_str());
+                if (pnodeExtra->isNetworkNode() && !pnode->isNetworkNode())
+                {
+                    pnode->AddRef();
+                    //printf("error %s_%d\n", __FILE__, __LINE__);
+                    bool bNode = pnode->isNetworkNode();
+                    bool bExtNode = pnodeExtra->isNetworkNode();
+                    pnode->setNetworkState(bExtNode);
+                    pnodeExtra->setNetworkState(bNode);
+                    pnode->Release();
+                }
+                pnodeExtra->setNetworkState(true);
+            }
+        }
+        mapFirst[ip] = pnode;
+    }
+    // 断开不使用的节点
+    // Disconnect unused nodes
+    vector<PeerNode*> cPeerNodeLstCopy = m_cPeerNodeLst;
+    foreach(auto it, cPeerNodeLstCopy)
+    {
+        PeerNode* pnode = it;
+        int64 curTime = GetTime();
+        // 节点准备释放链接，并且对应的接收和发送缓存区都是空
+        const uint64 heartBeatTime = 2 *60; // every 2 Minutes Send ping
+        const uint64 OffLineTime = 10*60; // if 10 Minutes has no data come in, we think the node is offline, ready to disconnect this Node;
+        const uint64 DeleteNodeTime = 15*60; // if 15 Minutes  has no data come in, to delete this Node
+        const uint64 LastActiveTime = pnode->getLastActiveTime();
+        const uint64 DiffTime = LastActiveTime - curTime;
+        if (DiffTime > DeleteNodeTime) {
+            if (pnode->ReadyToDisconnect())
+            {
+                // remove from m_cPeerNodeLst
+                m_cPeerNodeLst.erase(remove(m_cPeerNodeLst.begin(), m_cPeerNodeLst.end(), it), m_cPeerNodeLst.end());
+                // hold in disconnected pool until all refs are released
+                cPeerNodeLstDisconnected.push_back(pnode);
+            }
+            else {
+                pnode->Disconnect();
+            }
+        }
+        else if (DiffTime > OffLineTime) {
+             pnode->Disconnect();
+             pnode->setReleaseTime(curTime + 5 * 60); // Delay by five minutes, just for deal the msg in recvbuf
+             if (pnode->isNetworkNode())
+                 pnode->Release();
+        }
+        else if (DiffTime > heartBeatTime){
+            pnode->pingNode();
+        }
+    }
+    // Delete disconnected nodes
+    // map<string, PeerNode*> cPeerNodeLstDisconnectedCopy = cPeerNodeLstDisconnected;
+    foreach(PeerNode* pnode, cPeerNodeLstDisconnected)
+    {
+        // wait until threads are done using it
+        if (pnode->GetRefCount() <= 0)
+        {
+            cPeerNodeLstDisconnected.remove(pnode);
+            delete pnode;
+        }
+    }
+    
+
 }
 
 NetWorkServ::NetWorkServ()

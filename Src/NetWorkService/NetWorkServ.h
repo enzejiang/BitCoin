@@ -73,10 +73,7 @@ namespace Enze
 
             void MessageHandler();
             void SocketHandler();
-            void OpenConnections();
-            void NodeSyncThread();
-            void MessageRecv();
-            
+            void PeerNodeManagerThread();
             void AddrManagerThread();
             
         private:
@@ -93,6 +90,9 @@ namespace Enze
         
             map<unsigned int, vector<CAddress> > selectIp(unsigned int ipC);
             vector<unsigned int> getIPCList();
+            void AddrConvertPeerNode();
+            void DealPeerNodeMsg(void* zmqSock);
+            void UpdatePeerNodeStatu();
         private:
             
             int nDropMessagesTest = 0; // 消息采集的频率，即是多个少消息采集一次进行处理

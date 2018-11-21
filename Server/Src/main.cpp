@@ -90,12 +90,16 @@ int main()
     thread t1(RouterThread);
     while(1)
     {
-        char    pcContent1[10240] = {0};
+        struct {
+            unsigned int ip;
+            short port;
+        }ep;
+        
         sockaddr_in    addrUser1 = {0};
 
         socklen_t nLen1 = sizeof(addrUser1);
         //服务器接收来自客户端的消息，并且用addrUser1保存地址和端口
-        if (-1 == recvfrom(udpFd, pcContent1, sizeof(pcContent1), 0, (sockaddr*)&addrUser1, &nLen1))
+        if (-1 == recvfrom(udpFd, &ep, sizeof(ep), 0, (sockaddr*)&addrUser1, &nLen1))
         {
             cout << "dfdfda"<<endl;
             printf ("recv user 1 failed.errno=[%d]", errno);
@@ -109,6 +113,9 @@ int main()
             endPoint* pEndPoint = g_cMsg.add_eplist();
             pEndPoint->set_ip(addrUser1.sin_addr.s_addr);
             pEndPoint->set_port(addrUser1.sin_port);
+            
+            pEndPoint->set_localip(ep.ip);
+            pEndPoint->set_localport(ep.port);
             g_cMutex.unlock();    
         }        
     }

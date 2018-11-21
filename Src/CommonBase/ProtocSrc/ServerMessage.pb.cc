@@ -73,6 +73,8 @@ const ::google::protobuf::uint32 TableStruct_ServerMessage_2eproto::offsets[] PR
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::Enze::endPoint, ip_),
   PROTOBUF_FIELD_OFFSET(::Enze::endPoint, port_),
+  PROTOBUF_FIELD_OFFSET(::Enze::endPoint, localip_),
+  PROTOBUF_FIELD_OFFSET(::Enze::endPoint, localport_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Enze::ServMsg, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -82,7 +84,7 @@ const ::google::protobuf::uint32 TableStruct_ServerMessage_2eproto::offsets[] PR
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::Enze::endPoint)},
-  { 7, -1, sizeof(::Enze::ServMsg)},
+  { 9, -1, sizeof(::Enze::ServMsg)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -98,11 +100,12 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
 
 ::google::protobuf::internal::DescriptorTable descriptor_table_ServerMessage_2eproto = {
   false, InitDefaults_ServerMessage_2eproto, 
-  "\n\023ServerMessage.proto\022\004Enze\"$\n\010endPoint\022"
-  "\n\n\002ip\030\002 \001(\r\022\014\n\004port\030\003 \001(\r\")\n\007ServMsg\022\036\n\006"
-  "epList\030\001 \003(\0132\016.Enze.endPointb\006proto3"
+  "\n\023ServerMessage.proto\022\004Enze\"H\n\010endPoint\022"
+  "\n\n\002ip\030\001 \001(\r\022\014\n\004port\030\002 \001(\r\022\017\n\007LocalIp\030\003 \001"
+  "(\r\022\021\n\tLocalport\030\004 \001(\r\")\n\007ServMsg\022\036\n\006epLi"
+  "st\030\001 \003(\0132\016.Enze.endPointb\006proto3"
 ,
-  "ServerMessage.proto", &assign_descriptors_table_ServerMessage_2eproto, 116,
+  "ServerMessage.proto", &assign_descriptors_table_ServerMessage_2eproto, 152,
 };
 
 void AddDescriptors_ServerMessage_2eproto() {
@@ -127,6 +130,8 @@ class endPoint::HasBitSetters {
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int endPoint::kIpFieldNumber;
 const int endPoint::kPortFieldNumber;
+const int endPoint::kLocalIpFieldNumber;
+const int endPoint::kLocalportFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 endPoint::endPoint()
@@ -139,15 +144,15 @@ endPoint::endPoint(const endPoint& from)
       _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::memcpy(&ip_, &from.ip_,
-    static_cast<size_t>(reinterpret_cast<char*>(&port_) -
-    reinterpret_cast<char*>(&ip_)) + sizeof(port_));
+    static_cast<size_t>(reinterpret_cast<char*>(&localport_) -
+    reinterpret_cast<char*>(&ip_)) + sizeof(localport_));
   // @@protoc_insertion_point(copy_constructor:Enze.endPoint)
 }
 
 void endPoint::SharedCtor() {
   ::memset(&ip_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&port_) -
-      reinterpret_cast<char*>(&ip_)) + sizeof(port_));
+      reinterpret_cast<char*>(&localport_) -
+      reinterpret_cast<char*>(&ip_)) + sizeof(localport_));
 }
 
 endPoint::~endPoint() {
@@ -174,8 +179,8 @@ void endPoint::Clear() {
   (void) cached_has_bits;
 
   ::memset(&ip_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&port_) -
-      reinterpret_cast<char*>(&ip_)) + sizeof(port_));
+      reinterpret_cast<char*>(&localport_) -
+      reinterpret_cast<char*>(&ip_)) + sizeof(localport_));
   _internal_metadata_.Clear();
 }
 
@@ -192,9 +197,9 @@ const char* endPoint::_InternalParse(const char* begin, const char* end, void* o
     ptr = Varint::Parse32Inline(ptr, &tag);
     GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
-      // uint32 ip = 2;
-      case 2: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 16) goto handle_unusual;
+      // uint32 ip = 1;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 8) goto handle_unusual;
         ::google::protobuf::uint64 val;
         ptr = Varint::Parse64(ptr, &val);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
@@ -202,14 +207,34 @@ const char* endPoint::_InternalParse(const char* begin, const char* end, void* o
         msg->set_ip(value);
         break;
       }
-      // uint32 port = 3;
+      // uint32 port = 2;
+      case 2: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 16) goto handle_unusual;
+        ::google::protobuf::uint64 val;
+        ptr = Varint::Parse64(ptr, &val);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ::google::protobuf::uint32 value = val;
+        msg->set_port(value);
+        break;
+      }
+      // uint32 LocalIp = 3;
       case 3: {
         if (static_cast<::google::protobuf::uint8>(tag) != 24) goto handle_unusual;
         ::google::protobuf::uint64 val;
         ptr = Varint::Parse64(ptr, &val);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
         ::google::protobuf::uint32 value = val;
-        msg->set_port(value);
+        msg->set_localip(value);
+        break;
+      }
+      // uint32 Localport = 4;
+      case 4: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 32) goto handle_unusual;
+        ::google::protobuf::uint64 val;
+        ptr = Varint::Parse64(ptr, &val);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ::google::protobuf::uint32 value = val;
+        msg->set_localport(value);
         break;
       }
       default: {
@@ -246,9 +271,9 @@ bool endPoint::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // uint32 ip = 2;
-      case 2: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (16 & 0xFF)) {
+      // uint32 ip = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (8 & 0xFF)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
@@ -259,13 +284,39 @@ bool endPoint::MergePartialFromCodedStream(
         break;
       }
 
-      // uint32 port = 3;
+      // uint32 port = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (16 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &port_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint32 LocalIp = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) == (24 & 0xFF)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, &port_)));
+                 input, &localip_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint32 Localport = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (32 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &localport_)));
         } else {
           goto handle_unusual;
         }
@@ -299,14 +350,24 @@ void endPoint::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // uint32 ip = 2;
+  // uint32 ip = 1;
   if (this->ip() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->ip(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->ip(), output);
   }
 
-  // uint32 port = 3;
+  // uint32 port = 2;
   if (this->port() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->port(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->port(), output);
+  }
+
+  // uint32 LocalIp = 3;
+  if (this->localip() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->localip(), output);
+  }
+
+  // uint32 Localport = 4;
+  if (this->localport() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->localport(), output);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -323,14 +384,24 @@ void endPoint::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // uint32 ip = 2;
+  // uint32 ip = 1;
   if (this->ip() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->ip(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->ip(), target);
   }
 
-  // uint32 port = 3;
+  // uint32 port = 2;
   if (this->port() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->port(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->port(), target);
+  }
+
+  // uint32 LocalIp = 3;
+  if (this->localip() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->localip(), target);
+  }
+
+  // uint32 Localport = 4;
+  if (this->localport() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->localport(), target);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -354,18 +425,32 @@ size_t endPoint::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // uint32 ip = 2;
+  // uint32 ip = 1;
   if (this->ip() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::UInt32Size(
         this->ip());
   }
 
-  // uint32 port = 3;
+  // uint32 port = 2;
   if (this->port() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::UInt32Size(
         this->port());
+  }
+
+  // uint32 LocalIp = 3;
+  if (this->localip() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->localip());
+  }
+
+  // uint32 Localport = 4;
+  if (this->localport() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->localport());
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -401,6 +486,12 @@ void endPoint::MergeFrom(const endPoint& from) {
   if (from.port() != 0) {
     set_port(from.port());
   }
+  if (from.localip() != 0) {
+    set_localip(from.localip());
+  }
+  if (from.localport() != 0) {
+    set_localport(from.localport());
+  }
 }
 
 void endPoint::CopyFrom(const ::google::protobuf::Message& from) {
@@ -430,6 +521,8 @@ void endPoint::InternalSwap(endPoint* other) {
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(ip_, other->ip_);
   swap(port_, other->port_);
+  swap(localip_, other->localip_);
+  swap(localport_, other->localport_);
 }
 
 ::google::protobuf::Metadata endPoint::GetMetadata() const {

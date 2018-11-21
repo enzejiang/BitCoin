@@ -107,17 +107,6 @@ void BlockEngine::initiation()
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
 // 获取孤儿块对应的根
 uint256 BlockEngine::GetOrphanRoot(const CBlock* pblock)
 {

@@ -157,17 +157,29 @@ class endPoint : public ::google::protobuf::Message /* @@protoc_insertion_point(
 
   // accessors -------------------------------------------------------
 
-  // uint32 ip = 2;
+  // uint32 ip = 1;
   void clear_ip();
-  static const int kIpFieldNumber = 2;
+  static const int kIpFieldNumber = 1;
   ::google::protobuf::uint32 ip() const;
   void set_ip(::google::protobuf::uint32 value);
 
-  // uint32 port = 3;
+  // uint32 port = 2;
   void clear_port();
-  static const int kPortFieldNumber = 3;
+  static const int kPortFieldNumber = 2;
   ::google::protobuf::uint32 port() const;
   void set_port(::google::protobuf::uint32 value);
+
+  // uint32 LocalIp = 3;
+  void clear_localip();
+  static const int kLocalIpFieldNumber = 3;
+  ::google::protobuf::uint32 localip() const;
+  void set_localip(::google::protobuf::uint32 value);
+
+  // uint32 Localport = 4;
+  void clear_localport();
+  static const int kLocalportFieldNumber = 4;
+  ::google::protobuf::uint32 localport() const;
+  void set_localport(::google::protobuf::uint32 value);
 
   // @@protoc_insertion_point(class_scope:endPoint)
  private:
@@ -176,6 +188,8 @@ class endPoint : public ::google::protobuf::Message /* @@protoc_insertion_point(
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::uint32 ip_;
   ::google::protobuf::uint32 port_;
+  ::google::protobuf::uint32 localip_;
+  ::google::protobuf::uint32 localport_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_ServerMessage_2eproto;
 };
@@ -307,7 +321,7 @@ class ServMsg : public ::google::protobuf::Message /* @@protoc_insertion_point(c
 #endif  // __GNUC__
 // endPoint
 
-// uint32 ip = 2;
+// uint32 ip = 1;
 inline void endPoint::clear_ip() {
   ip_ = 0u;
 }
@@ -321,7 +335,7 @@ inline void endPoint::set_ip(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:endPoint.ip)
 }
 
-// uint32 port = 3;
+// uint32 port = 2;
 inline void endPoint::clear_port() {
   port_ = 0u;
 }
@@ -333,6 +347,34 @@ inline void endPoint::set_port(::google::protobuf::uint32 value) {
   
   port_ = value;
   // @@protoc_insertion_point(field_set:endPoint.port)
+}
+
+// uint32 LocalIp = 3;
+inline void endPoint::clear_localip() {
+  localip_ = 0u;
+}
+inline ::google::protobuf::uint32 endPoint::localip() const {
+  // @@protoc_insertion_point(field_get:endPoint.LocalIp)
+  return localip_;
+}
+inline void endPoint::set_localip(::google::protobuf::uint32 value) {
+  
+  localip_ = value;
+  // @@protoc_insertion_point(field_set:endPoint.LocalIp)
+}
+
+// uint32 Localport = 4;
+inline void endPoint::clear_localport() {
+  localport_ = 0u;
+}
+inline ::google::protobuf::uint32 endPoint::localport() const {
+  // @@protoc_insertion_point(field_get:endPoint.Localport)
+  return localport_;
+}
+inline void endPoint::set_localport(::google::protobuf::uint32 value) {
+  
+  localport_ = value;
+  // @@protoc_insertion_point(field_set:endPoint.Localport)
 }
 
 // -------------------------------------------------------------------

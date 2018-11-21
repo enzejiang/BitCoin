@@ -1,10 +1,11 @@
-
 syntax = "proto3";
 package Enze;
 message endPoint
 {
-    uint32  ip = 2;
-    uint32  port = 3;
+    uint32  ip = 1;
+    uint32  port = 2;
+    uint32  LocalIp = 3;
+    uint32  Localport = 4;
 }
 
 message ServMsg

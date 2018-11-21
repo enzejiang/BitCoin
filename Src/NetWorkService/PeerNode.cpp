@@ -29,15 +29,16 @@
 using namespace std;
 using namespace Enze;
 
-PeerNode::PeerNode(const CAddress& addrIn, bool fInboundIn)
+PeerNode::PeerNode(const CAddress& addrIn, int socketFd, bool fInboundIn)
 : m_bInbound(fInboundIn),
   m_cAddr(addrIn),
+  m_peerFd(socketFd),
   m_SendLst(),
   m_RecvLst(),
   m_cSndMtx(),
   m_cRcvMtx()
 {
-    m_peerFd = udp_socket(CAddress("127.0.0.1"), m_cAddr);
+
 }
 
 
@@ -53,32 +54,27 @@ PeerNode::~PeerNode()
         delete pSend;
     }
     m_SendLst.clear();
-    close(m_peerFd);
 }
 
 bool PeerNode::pingNode()
 {
-    zmq_pollitem_t items[] = {{0, m_peerFd, ZMQ_POLLIN, 0}};
-    int ret = sock_send(m_peerFd, "ping");// ping the server 
+    int ret = sock_sendto(m_peerFd, "ping", m_cAddr);// ping the server 
     if (0 > ret) {
         printf("%s---%d, Error[%m]\n", __FILE__, __LINE__);
         return false;
-    }
-    //wait the server reply the pong cmd, we will wait no more than 6s
-    int rc = zmq_poll(items, 1, 6000*3);
-    if (-1 ==rc) return false;
-   
-    CAddress cAddr;
-    if (rc != 0) {
-        char* rep = sock_recv(m_peerFd);
-        printf("pingNode Has Data[%s]\n", rep);
-        free(rep);
-        return true;
-    }
-
-    return false;
+    }    
+    return true;
 }
 
+bool PeerNode::repPong()
+{
+    int ret = sock_sendto(m_peerFd, "pong", m_cAddr);// ping the server 
+    if (0 > ret) {
+        printf("%s---%d, Error[%m]\n", __FILE__, __LINE__);
+        return false;
+    }    
+    return true;
+}
 
 void PeerNode::Disconnect()
 {
@@ -139,8 +135,8 @@ void PeerNode::SendVersion()
     
     string strData;
     cProtoc->SerializePartialToString(&strData);
-    sock_send(m_peerFd, "data");
-    sock_send(m_peerFd, strData.c_str());
+    sock_sendto(m_peerFd, "data", m_cAddr);
+    sock_sendto(m_peerFd, strData.c_str(), m_cAddr);
     delete cProtoc;
 
 }
@@ -258,14 +254,12 @@ void PeerNode::AddRecvMessage(PB_MessageData* pRecvData)
     m_RecvLst.push_back(pRecvData);
 }
 
-void PeerNode::Recv()
+void PeerNode::Recv(const char* pData)
 {
-    CAddress cAddr;
-    char* req = sock_recv(m_peerFd);
+    if (NULL == pData) return;
     std::lock_guard<std::mutex> guard(m_cRcvMtx);
     PB_MessageData *cProtoc = new PB_MessageData();
-    cProtoc->ParsePartialFromString(req);
-    free(req);
+    cProtoc->ParsePartialFromString(pData);
     m_RecvLst.push_back(cProtoc);
 }
 
@@ -276,6 +270,7 @@ void PeerNode::Send()
         m_bDisconnect = true;
         return;
     }
+
     if (0 == m_nVersion) {
         SendVersion();
         printf("Do not Get peer Node Version Data ,will not send data to it\n");
@@ -287,8 +282,8 @@ void PeerNode::Send()
         string strData;
         pData->SerializePartialToString(&strData);
         //s_sendmore(socket, m_EndPoint.c_str());
-        sock_send(m_peerFd, "data");
-        sock_send(m_peerFd, strData.c_str());
+        sock_sendto(m_peerFd, "data", m_cAddr);
+        sock_sendto(m_peerFd, strData.c_str(), m_cAddr);
         m_SendLst.pop_front();
         delete pData;
     }
