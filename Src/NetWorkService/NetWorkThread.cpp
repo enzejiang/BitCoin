@@ -158,7 +158,7 @@ void NetWorkServ::AddrManagerThread()
 
     char* servIp = phostent->h_addr_list[0];
 #endif
-    char* servIp = "192.168.2.206";
+    char* servIp = "192.168.2.206";//"114.116.128.116";
     string servEndPoint = string("tcp://")+string(servIp)+string(":6667");
 
     
@@ -267,13 +267,14 @@ void NetWorkServ::SocketHandler()
                 if (NULL == dataType) {
                     continue;
                 }
-                s_sendmore(server, "");
+               // s_sendmore(server, "");
                 s_sendmore(server, dataType);
                 if (0 == strcmp("ping", dataType) || 0 == strcmp("pong", dataType)) {
                     s_send(server,(char*)cAddr.ToString().c_str());
+                    printf("NetWorkServ::SocketHandler Recv ping\n");
                 }
                 else if (0 == strcmp("data", dataType)){
-                    printf("Recv Data\n");
+                    printf("NetWorkServ::SocketHandler Recv Data\n");
                     s_sendmore(server,(char*)cAddr.ToString().c_str());
                     char* buf = sock_recvfrom(m_iSocketFd, cAddr);
                     s_send(server, buf);

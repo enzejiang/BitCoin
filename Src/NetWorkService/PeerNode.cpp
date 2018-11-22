@@ -78,7 +78,7 @@ bool PeerNode::repPong()
 
 void PeerNode::Disconnect()
 {
-    printf("disconnecting node %s\n",  m_cAddr.GetKey().c_str());
+    printf("disconnecting node %s\n",  m_cAddr.ToString().c_str());
 
     map<string, CAddress>& mapAddresses = Enze::NetWorkServ::getInstance()->getMapAddr();
     // If outbound and never got version message, mark address as failed

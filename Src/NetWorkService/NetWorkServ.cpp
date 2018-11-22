@@ -582,14 +582,15 @@ void NetWorkServ::DealPeerNodeMsg(void* zmqSock)
 
     if (0 != retCnt) {
         if (items[0].revents & ZMQ_POLLIN) {
-            char* buf = s_recv(zmqSock);
-            printf("DealPeerNode Msg ---1[%s]\n", buf);
+            char* id = s_recv(zmqSock);
+            printf("DealPeerNode Msg ---id[%s]\n", id);
+            char* pDataType = s_recv(zmqSock);
+            printf("DealPeerNode Msg ---pDataType[%s]\n", pDataType);
+
             char* Straddr = s_recv(zmqSock);
-            printf("DealPeerNode Msg ---2[%s]\n", Straddr);
+            printf("DealPeerNode Msg ---addr[%s]\n", Straddr);
             CAddress cAddr(Straddr);
-            if (NULL == buf) {
-                return;
-            }
+
             PeerNode* pNode = FindNode(cAddr);
             if (!pNode) {
                 pNode=ConnectNode(cAddr);
@@ -597,20 +598,21 @@ void NetWorkServ::DealPeerNodeMsg(void* zmqSock)
             }
             pNode->AddRef();
             pNode->setLastActiveTime(GetTime());
-            if (0 == strcmp("ping", buf)) {
+            if (0 == strcmp("ping", pDataType)) {
                 pNode->repPong();
             }
-            else if (0 == strcmp("data", buf)){
+            else if (0 == strcmp("data", pDataType)){
                 printf("DealPeerNode[%s]Recv Data\n", Straddr);
                 char* pData = s_recv(zmqSock);
                 pNode->Recv(pData);
                 free(pData);
             }
             else {
-                printf("Recv Data [%s]\n", buf);
+                printf("NetWorkServ::DealPeerNodeMsg Recv Data [%s]\n", pDataType);
             }
             pNode->Release();
-            free(buf);
+            free(id);
+            free(pDataType);
             free(Straddr);
         }
     }
@@ -668,7 +670,8 @@ void NetWorkServ::UpdatePeerNodeStatu()
         const uint64 OffLineTime = 10*60; // if 10 Minutes has no data come in, we think the node is offline, ready to disconnect this Node;
         const uint64 DeleteNodeTime = 15*60; // if 15 Minutes  has no data come in, to delete this Node
         const uint64 LastActiveTime = pnode->getLastActiveTime();
-        const uint64 DiffTime = LastActiveTime - curTime;
+        const uint64 DiffTime = curTime - LastActiveTime;
+        printf(" NetWorkServ::UpdatePeerNodeStatu---LastActiveTime[%lld]--DiffTime[%lld]\n", LastActiveTime, DiffTime);
         if (DiffTime > DeleteNodeTime) {
             if (pnode->ReadyToDisconnect())
             {
